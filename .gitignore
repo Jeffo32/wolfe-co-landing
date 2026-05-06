@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.log
+.vite
+.vercel
+
+# heavy test assets in public/ — drop in via the editor instead
+public/*.mp4
+public/*.mov
+public/*.webm
