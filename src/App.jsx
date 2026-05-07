@@ -138,6 +138,34 @@ export default function WolfeCoLanding() {
 
 function Landing() {
   const { textScale, tagY } = useMedia();
+  const heroMarkRef = useRef(null);
+
+  // 3D tilt on hero logo, driven by scroll progress past the hero section.
+  useEffect(() => {
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      const el = heroMarkRef.current;
+      if (!el) return;
+      const vh = window.innerHeight || 1;
+      // Reach max tilt when we've scrolled ~60% of the viewport past the hero,
+      // so the tilt completes during the brief snap animation rather than only at the end.
+      const progress = Math.max(0, Math.min(1, window.scrollY / (vh * 0.6)));
+      el.style.setProperty('--logo-tilt', `${(progress * 22).toFixed(2)}deg`);
+      el.style.setProperty('--logo-lift', `${(progress * -14).toFixed(1)}px`);
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(apply);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    apply();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   useEffect(() => {
     let meta = document.querySelector('meta[name="viewport"]');
     if (!meta) {
@@ -222,7 +250,23 @@ function Landing() {
           text-align: center;
           z-index: 2;
         }
-        .wc-hero-mark { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+        .wc-hero-mark {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 18px;
+          perspective: 1100px;
+          perspective-origin: 50% 60%;
+        }
+        .wc-hero-mark > * {
+          transform:
+            translateY(var(--logo-lift, 0px))
+            rotateX(var(--logo-tilt, 0deg));
+          transform-origin: 50% 60%;
+          transform-style: preserve-3d;
+          transition: transform 140ms cubic-bezier(0.22, 0.61, 0.36, 1);
+          will-change: transform;
+        }
         .wc-hero-co {
           font-family: 'Space Mono', monospace;
           font-size: calc(13px * var(--text-scale, 1));
@@ -1268,7 +1312,7 @@ function Landing() {
           <Section id="hero">
             <SectionMedia id="hero" overlay={0.4} />
             <div className="wc-hero-inner">
-              <div className="wc-hero-mark">
+              <div className="wc-hero-mark" ref={heroMarkRef}>
                 <WolfeMark size={88} />
               </div>
               <span className="wc-hero-tag">
