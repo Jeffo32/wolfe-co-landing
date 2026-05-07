@@ -4,7 +4,13 @@ import SectionMedia from './components/SectionMedia.jsx';
 import BackgroundEditor from './components/BackgroundEditor.jsx';
 import WolfeMark from './components/WolfeMark.jsx';
 import { useMedia } from './media/MediaContext.jsx';
-import { makeSplitter } from './components/SplitText.jsx';
+import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
+
+function easeOutQuad(t) { return 1 - (1 - t) ** 2; }
+function Counter({ target, progress, suffix = '', decimals = 0 }) {
+  const t = Math.max(0, Math.min(1, progress));
+  return (target * easeOutQuad(t)).toFixed(decimals) + suffix;
+}
 
 // ---------- DIVISIONS HUB (concentric rings + sparkles) ----------
 const DivisionsHub = () => (
@@ -141,9 +147,10 @@ export default function WolfeCoLanding() {
 // <section> has entered the viewport. Sets CSS var --p (0 → 1).
 // 0 = section's top edge is one full viewport below the top.
 // 1 = section's top edge has reached the top of the viewport.
-function useScrollEnter(ref, { throw_ = 1 } = {}) {
+function useScrollEnter(ref, { throw_ = 1, onProgress } = {}) {
   useEffect(() => {
     let raf = 0;
+    let lastP = -1;
     const apply = () => {
       raf = 0;
       const el = ref.current;
@@ -153,6 +160,10 @@ function useScrollEnter(ref, { throw_ = 1 } = {}) {
       const rect = section.getBoundingClientRect();
       const p = Math.max(0, Math.min(1, (vh - rect.top) / (vh * throw_)));
       el.style.setProperty('--p', p.toFixed(4));
+      if (onProgress && Math.abs(p - lastP) > 0.003) {
+        lastP = p;
+        onProgress(p);
+      }
     };
     const onScroll = () => {
       if (raf) return;
@@ -164,7 +175,7 @@ function useScrollEnter(ref, { throw_ = 1 } = {}) {
       window.removeEventListener('scroll', onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [ref, throw_]);
+  }, [ref, throw_, onProgress]);
 }
 
 // Hook: drives a 3D tilt-up on `ref` based on how far the nearest <section> has
@@ -258,7 +269,7 @@ const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
 const CapabilitiesInner = React.forwardRef(function CapabilitiesInner(_, ref) {
   const split = makeSplitter();
   return (
-    <div className="wc-stage wc-tilt-target wc-reveal-stage" ref={ref}>
+    <div className="wc-stage wc-tilt-target wc-reveal-stage wc-no-blur" ref={ref}>
       <div className="wc-cap-label tl">
         <span className="wc-num">{split('001')}</span>
         <span>{split('Strategy')}</span>
@@ -289,7 +300,7 @@ const OffersInner = React.forwardRef(function OffersInner(_, ref) {
   const split = makeSplitter();
   return (
     <div className="wc-offers-wrap">
-      <div className="wc-offers-inner wc-tilt-target wc-reveal-stage" ref={ref}>
+      <div className="wc-offers-inner wc-tilt-target wc-reveal-stage wc-no-blur" ref={ref}>
         <div className="wc-offers-head">
           <span className="wc-cap-num">{split('04 — What I Build')}</span>
           <span className="wc-cap-rule" />
@@ -336,90 +347,68 @@ const OffersInner = React.forwardRef(function OffersInner(_, ref) {
 });
 
 const AvailabilityInner = React.forwardRef(function AvailabilityInner(_, ref) {
-  const split = makeSplitter();
   return (
-    <div className="wc-avail">
-      <div className="wc-avail-inner wc-tilt-target wc-reveal-stage" ref={ref}>
-        <span className="wc-avail-eyebrow">
-          <span className="wc-rule-36" />
-          <span>{split('05 — Availability')}</span>
-          <span className="wc-rule-36" />
-        </span>
+    <div className="wc-av2 wc-tilt-target wc-reveal-stage" ref={ref}>
+      <span className="wc-av2-eyebrow">Limited Offer / 2026</span>
 
-        <h2 className="wc-avail-title">
-          <span className="wc-statement-num">{split('2')}</span>
-          {split(' Founding Partner Slots Left For 2026')}
-          <span className="wc-period">{split('.')}</span>
-        </h2>
+      <h2 className="wc-av2-title">Founding<br />Partner</h2>
 
-        <div className="wc-avail-slots">
-          <div className="wc-slot wc-slot--open">
-            <span className="wc-slot-num">{split('01')}</span>
-            <span className="wc-slot-state">
-              <span className="wc-ochre-dot" />
-              {split('Open')}
-            </span>
-          </div>
-          <div className="wc-slot wc-slot--open">
-            <span className="wc-slot-num">{split('02')}</span>
-            <span className="wc-slot-state">
-              <span className="wc-ochre-dot" />
-              {split('Open')}
-            </span>
-          </div>
-          <div className="wc-slot wc-slot--filled">
-            <span className="wc-slot-num">{split('03')}</span>
-            <span className="wc-slot-state">{split('Held')}</span>
-          </div>
+      <div className="wc-av2-divider">
+        <span className="wc-av2-rule" />
+        <span className="wc-ochre-dot" />
+        <span className="wc-av2-rule" />
+      </div>
+
+      <p className="wc-av2-body">
+        Two client slots at my current rates before prices go up.<br />
+        Lock in now, keep your rate permanently.
+      </p>
+
+      <span className="wc-av2-label">2 Founding Slots Remaining</span>
+
+      <div className="wc-av2-slots">
+        <div className="wc-av2-card">
+          <span className="wc-av2-card-label">Slot 1</span>
         </div>
-
-        <p className="wc-avail-note">
-          {split('Wolfe Co is taking on two more long-term clients for the year. Founding rates lock in permanently — every other client onboarded after these slots close will pay more. These are the lowest rates this brand will ever charge.')}
-        </p>
-
-        <div className="wc-avail-detail">
-          <div className="wc-avail-detail-item">
-            <span className="wc-avail-detail-rule" />
-            <span className="wc-avail-detail-label">{split('Format')}</span>
-            <span className="wc-avail-detail-val">{split('Retainer or Bundle')}</span>
-          </div>
-          <div className="wc-avail-detail-item">
-            <span className="wc-avail-detail-rule" />
-            <span className="wc-avail-detail-label">{split('Lock-in')}</span>
-            <span className="wc-avail-detail-val">{split('Permanent Rate')}</span>
-          </div>
-          <div className="wc-avail-detail-item">
-            <span className="wc-avail-detail-rule" />
-            <span className="wc-avail-detail-label">{split('Scope')}</span>
-            <span className="wc-avail-detail-val">{split('Custom Per Client')}</span>
-          </div>
+        <div className="wc-av2-card">
+          <span className="wc-av2-card-label">Slot 2</span>
         </div>
       </div>
+
+      <span className="wc-av2-bottom">Your Name Here</span>
     </div>
   );
 });
 
 const ProofInner = React.forwardRef(function ProofInner(_, ref) {
-  const split = makeSplitter();
+  const [p, setP] = useState(1);
+  const localRef = useRef(null);
+  const setRef = (node) => {
+    localRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  };
+  useScrollEnter(localRef, { onProgress: setP });
+
   return (
-    <div className="wc-stage wc-tilt-target wc-reveal-stage" ref={ref}>
-      <span className="wc-proof-eyebrow">{split('06 — Proof')}</span>
+    <div className="wc-stage wc-tilt-target wc-reveal-stage wc-no-blur" ref={setRef}>
+      <span className="wc-proof-eyebrow">06 — Proof</span>
 
       <div className="wc-proof-inner">
         <div className="wc-metric">
           <span className="wc-metric-rule" />
-          <span className="wc-metric-num">{split('150+')}</span>
-          <span className="wc-metric-label">{split('Projects')}</span>
+          <span className="wc-metric-num"><Counter target={150} progress={p} suffix="+" /></span>
+          <span className="wc-metric-label">Projects</span>
         </div>
         <div className="wc-metric">
           <span className="wc-metric-rule" />
-          <span className="wc-metric-num">{split('3.2M+')}</span>
-          <span className="wc-metric-label">{split('Views')}</span>
+          <span className="wc-metric-num"><Counter target={3.2} progress={p} suffix="M+" decimals={1} /></span>
+          <span className="wc-metric-label">Views</span>
         </div>
         <div className="wc-metric">
           <span className="wc-metric-rule" />
-          <span className="wc-metric-num">{split('98%')}</span>
-          <span className="wc-metric-label">{split('Retention')}</span>
+          <span className="wc-metric-num"><Counter target={98} progress={p} suffix="%" /></span>
+          <span className="wc-metric-label">Retention</span>
         </div>
       </div>
     </div>
@@ -433,17 +422,16 @@ const CTAInner = React.forwardRef(function CTAInner(_, ref) {
       <div className="wc-cta-inner wc-tilt-target wc-reveal-stage" ref={ref}>
         <span className="wc-cta-eyebrow">
           <span className="wc-ochre-dot" />
-          {split('07 — Begin')}
+          07 — Begin
         </span>
         <h2 className="wc-cta-title">
-          {split('Ready To Build Authority')}
-          <span className="wc-period">{split('?')}</span>
+          <span className="wc-cta-emphasis">Ready</span> To Build Authority<span className="wc-period">?</span>
         </h2>
         <button className="wc-btn" onClick={() => {}}>
-          {split('Claim a Founding Slot')}
+          Lets work together
         </button>
         <button className="wc-link" onClick={() => {}}>
-          {split('View Work')}
+          View Work
         </button>
       </div>
 
@@ -458,32 +446,28 @@ const CTAInner = React.forwardRef(function CTAInner(_, ref) {
 });
 
 const StatementInner = React.forwardRef(function StatementInner(_, ref) {
-  const split = makeSplitter();
+  const w = makeWordSplitter();
   return (
-    <div className="wc-statement-inner wc-tilt-target wc-reveal-stage" ref={ref}>
+    <div className="wc-statement-inner wc-tilt-target wc-reveal-stage wc-no-blur" ref={ref}>
       <div className="wc-statement-eyebrow">
         <span className="wc-rule-36" />
-        <span>{split('01 — Position')}</span>
+        <span>{w('01 — Position')}</span>
         <span className="wc-rule-36" />
       </div>
 
       <h1 className="wc-statement-line">
-        <span className="wc-statement-num">{split('20')}</span>
-        {split(' Years Of Knowing What ')}
-        {split('‘Good’')}
-        {split(' Looks Like')}
-        <span className="wc-period">{split('.')}</span>
+        <span className="wc-statement-num">{w('20')}</span>
+        {' '}{w('Years Of Knowing What ‘Good’ Looks Like')}<span className="wc-period">.</span>
       </h1>
 
       <div className="wc-credo">
-        <span className="wc-credo-line">{split('We Know Good When We See It,')}</span>
+        <span className="wc-credo-line">{w('We Know Good When We See It,')}</span>
         <span className="wc-credo-line">
-          {split('Hear It, And Feel It')}
-          <span className="wc-period">{split('.')}</span>
+          {w('Hear It, And Feel It')}<span className="wc-period">.</span>
         </span>
         <span className="wc-credo-foot">
           <span className="wc-ochre-dot" />
-          {split('Two Decades Of Practice')}
+          {w('Two Decades Of Practice')}
           <span className="wc-ochre-dot" />
         </span>
       </div>
@@ -519,7 +503,7 @@ function Landing() {
   useScrollEnter(availabilityRef);
   useScrollTilt(availabilityRef, { maxTilt: 14, maxLift: -8 });
 
-  useScrollEnter(proofRef);
+  // proof self-manages useScrollEnter (needs progress state for Counter)
   useScrollTilt(proofRef, { maxTilt: 18, maxLift: -10 });
 
   useScrollEnter(ctaRef);
@@ -657,7 +641,145 @@ function Landing() {
 
         /* ---------- ENTRY REVEAL (whole-section blur + scale) ---------- */
         .wc-reveal-stage { --p: 1; }
-        /* split letter spans render as plain inline text — no per-letter animation */
+
+        /* opt-out modifier: keep tilt, drop the entry blur+scale */
+        .wc-tilt-target.wc-no-blur {
+          filter: none;
+          transform:
+            translateY(var(--lift, 0px))
+            rotateX(var(--tilt, 0deg));
+        }
+
+        /* word-level emergence (used on Statement section) */
+        .wc-word {
+          display: inline-block;
+          --start: calc(var(--i, 0) * 0.06);
+          --r: clamp(0, calc((var(--p, 1) - var(--start)) / 0.20), 1);
+          opacity: var(--r);
+          transform: translateY(calc((1 - var(--r)) * 28px));
+          transition:
+            opacity 220ms ease-out,
+            transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+          will-change: transform, opacity;
+        }
+
+        /* offers cards slide in from L / up / R driven by --p */
+        #offers .wc-offer-card {
+          transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+          will-change: transform;
+        }
+        #offers .wc-offer-card:nth-child(1) {
+          transform: translateX(calc(-90px * (1 - var(--p, 1))));
+        }
+        #offers .wc-offer-card:nth-child(2) {
+          transform: translateY(calc(80px * (1 - var(--p, 1))));
+        }
+        #offers .wc-offer-card:nth-child(3) {
+          transform: translateX(calc(90px * (1 - var(--p, 1))));
+        }
+
+        /* fix word-spacing on the credo footer ("Two Decades Of Practice") */
+        .wc-credo-foot { word-spacing: 0.4em; }
+
+        /* CTA highlight on "Ready" */
+        .wc-cta-emphasis { color: #CE703F; }
+
+        /* ---------- AVAILABILITY (new layout) ---------- */
+        .wc-av2 {
+          width: 100%;
+          height: 100%;
+          padding: 56px 28px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 22px;
+          text-align: center;
+          position: relative;
+        }
+        .wc-av2-eyebrow {
+          font-family: 'Space Mono', monospace;
+          font-size: calc(11px * var(--text-scale, 1));
+          letter-spacing: 0.4em;
+          color: #CE703F;
+          text-transform: uppercase;
+        }
+        .wc-av2-title {
+          font-family: 'Inter Tight', sans-serif;
+          font-weight: 800;
+          font-size: calc(56px * var(--text-scale, 1));
+          line-height: 1;
+          letter-spacing: 0.04em;
+          color: #CFBFAA;
+        }
+        .wc-av2-divider {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin: 4px 0 8px;
+        }
+        .wc-av2-rule {
+          width: 96px;
+          height: 1px;
+          background: rgba(207,191,170,0.35);
+        }
+        .wc-av2-body {
+          font-family: 'Space Mono', monospace;
+          font-size: calc(13px * var(--text-scale, 1));
+          line-height: 1.7;
+          color: #CFBFAA;
+          opacity: 0.82;
+          max-width: 560px;
+          letter-spacing: 0.02em;
+        }
+        .wc-av2-label {
+          font-family: 'Space Mono', monospace;
+          font-size: calc(10px * var(--text-scale, 1));
+          letter-spacing: 0.4em;
+          color: #CFBFAA;
+          opacity: 0.65;
+          text-transform: uppercase;
+          margin-top: 12px;
+        }
+        .wc-av2-slots {
+          display: flex;
+          gap: 24px;
+          margin-top: 4px;
+        }
+        .wc-av2-card {
+          width: 160px;
+          height: 220px;
+          background: #0e0d10;
+          border: 1px solid rgba(207,191,170,0.06);
+          border-radius: 6px;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          padding-bottom: 22px;
+        }
+        .wc-av2-card-label {
+          font-family: 'Space Mono', monospace;
+          font-size: calc(11px * var(--text-scale, 1));
+          letter-spacing: 0.4em;
+          color: #CFBFAA;
+          text-transform: uppercase;
+        }
+        .wc-av2-bottom {
+          font-family: 'Space Mono', monospace;
+          font-size: calc(11px * var(--text-scale, 1));
+          letter-spacing: 0.4em;
+          color: #CE703F;
+          text-transform: uppercase;
+          margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+          .wc-av2 { padding: 40px 18px; gap: 14px; }
+          .wc-av2-title { font-size: calc(36px * var(--text-scale, 1)); }
+          .wc-av2-body { font-size: calc(11px * var(--text-scale, 1)); }
+          .wc-av2-rule { width: 60px; }
+          .wc-av2-slots { gap: 14px; margin-top: 0; }
+          .wc-av2-card { width: 120px; height: 160px; padding-bottom: 16px; }
+        }
         .wc-hero-co {
           font-family: 'Space Mono', monospace;
           font-size: calc(13px * var(--text-scale, 1));
@@ -710,6 +832,7 @@ function Landing() {
         .wc-orb {
           transform: translate(-50%, -50%);
           border-radius: 999px;
+          overflow: hidden;
           background: radial-gradient(
             circle at 35% 35%,
             #FFE7B3 0%,
@@ -718,43 +841,35 @@ function Landing() {
             rgba(206,112,63,0) 78%
           );
           box-shadow:
-            0 0 8px rgba(255,200,140,0.8),
-            0 0 22px rgba(206,112,63,0.65),
-            0 0 48px rgba(206,112,63,0.35);
-          animation: wcOrbPulse 3.2s ease-in-out infinite;
+            0 0 9px rgba(255,200,140,0.85),
+            0 0 24px rgba(206,112,63,0.62),
+            0 0 52px rgba(206,112,63,0.32);
           pointer-events: none;
         }
-        .wc-orb::before,
-        .wc-orb::after {
-          content: '';
+
+        /* Drifting specular highlight — gives the orb a "sunlight on celestial body" feel */
+        .wc-orb-spec {
           position: absolute;
-          inset: 0;
+          width: 32%; height: 32%;
+          top: 8%; left: 14%;
           border-radius: 999px;
-          border: 1px solid rgba(206,112,63,0.55);
-          opacity: 0;
-          animation: wcOrbRing 3.2s ease-out infinite;
+          background: radial-gradient(
+            circle,
+            rgba(255,250,225,0.95) 0%,
+            rgba(255,210,160,0.45) 38%,
+            rgba(255,200,140,0)    78%
+          );
+          filter: blur(1.4px);
+          mix-blend-mode: screen;
+          animation: wcOrbDrift 7.8s ease-in-out infinite;
+          pointer-events: none;
         }
-        .wc-orb::after {
-          animation-delay: 1.6s;
-          border-color: rgba(255,213,160,0.45);
-        }
-        @keyframes wcOrbPulse {
-          0%, 100% {
-            box-shadow:
-              0 0 6px rgba(255,200,140,0.7),
-              0 0 18px rgba(206,112,63,0.55),
-              0 0 36px rgba(206,112,63,0.25);
-          }
-          50% {
-            box-shadow:
-              0 0 10px rgba(255,210,160,1),
-              0 0 30px rgba(241,167,102,0.85),
-              0 0 64px rgba(206,112,63,0.5);
-          }
-        }
-        @keyframes wcOrbRing {
-          0%   { transform: scale(1);   opacity: 0.7; }
-          100% { transform: scale(3.6); opacity: 0; }
+        @keyframes wcOrbDrift {
+          0%   { transform: translate(0, 0)        scale(1);    opacity: 0.78; }
+          22%  { transform: translate(60%, -8%)    scale(0.82); opacity: 1; }
+          46%  { transform: translate(72%, 38%)    scale(1.12); opacity: 0.62; }
+          70%  { transform: translate(12%, 62%)    scale(0.9);  opacity: 0.95; }
+          100% { transform: translate(0, 0)        scale(1);    opacity: 0.78; }
         }
 
         /* Inner shimmer — rotating warm arc inside the orb body */
