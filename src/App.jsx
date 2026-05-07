@@ -476,7 +476,7 @@ const StatementInner = React.forwardRef(function StatementInner(_, ref) {
       </h1>
 
       <div className="wc-credo">
-        <span className="wc-credo-line">{split('I Know Good When I See It,')}</span>
+        <span className="wc-credo-line">{split('We Know Good When We See It,')}</span>
         <span className="wc-credo-line">
           {split('Hear It, And Feel It')}
           <span className="wc-period">{split('.')}</span>
@@ -641,12 +641,18 @@ function Landing() {
           will-change: transform, filter;
           backface-visibility: hidden;
         }
-        /* full-bleed wrapper used as a single tilt/reveal target inside a section */
+        /* full-bleed wrapper used as a single tilt/reveal target inside a section.
+           Mirrors .wc-section's flex centering so absolute children (corner labels,
+           proof eyebrow) keep their absolute placement while the centred element
+           (wc-cap-center, wc-proof-inner) stays middle-of-section. */
         .wc-stage {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         /* ---------- ENTRY REVEAL (whole-section blur + scale) ---------- */
@@ -749,6 +755,47 @@ function Landing() {
         @keyframes wcOrbRing {
           0%   { transform: scale(1);   opacity: 0.7; }
           100% { transform: scale(3.6); opacity: 0; }
+        }
+
+        /* Inner shimmer — rotating warm arc inside the orb body */
+        .wc-orb-core {
+          position: absolute;
+          inset: 10%;
+          border-radius: 999px;
+          background: conic-gradient(
+            from 0turn,
+            rgba(255,225,180,0)    0%,
+            rgba(255,225,180,0)    8%,
+            rgba(255,210,150,0.55) 22%,
+            rgba(255,160,90,0.85)  36%,
+            rgba(255,210,150,0.55) 50%,
+            rgba(255,225,180,0)    66%,
+            rgba(255,225,180,0)    100%
+          );
+          filter: blur(1.4px);
+          mix-blend-mode: screen;
+          animation: wcOrbInnerSpin 5.2s linear infinite;
+          pointer-events: none;
+          transform-origin: 50% 50%;
+        }
+        .wc-orb-core::after {
+          content: '';
+          position: absolute;
+          inset: 30%;
+          border-radius: 999px;
+          background: radial-gradient(
+            circle at 50% 50%,
+            rgba(255,235,200,0.85) 0%,
+            rgba(255,200,140,0)    72%
+          );
+          animation: wcOrbCoreBreath 2.4s ease-in-out infinite;
+        }
+        @keyframes wcOrbInnerSpin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes wcOrbCoreBreath {
+          0%, 100% { transform: scale(0.78); opacity: 0.55; }
+          50%      { transform: scale(1.18); opacity: 1; }
         }
 
         /* ---------- STATEMENT ---------- */
