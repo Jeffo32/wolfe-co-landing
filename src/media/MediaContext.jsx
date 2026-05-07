@@ -49,7 +49,9 @@ const buildInitialLogo = () => {
 
 const buildInitialScale = () => {
   const v = parseFloat(import.meta.env.VITE_LOGO_SCALE);
-  return Number.isFinite(v) ? v : 8;
+  if (Number.isFinite(v)) return v;
+  if (typeof window !== 'undefined' && window.innerWidth <= 768) return 4;
+  return 8;
 };
 
 const MediaContext = createContext(null);

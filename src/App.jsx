@@ -196,6 +196,267 @@ function useScrollTilt(ref, { maxTilt = 22, maxLift = -14, throw_ = 0.6 } = {}) 
   }, [ref, maxTilt, maxLift, throw_]);
 }
 
+const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
+  const split = makeSplitter();
+  return (
+    <div className="wc-dx wc-tilt-target wc-reveal-stage" ref={ref}>
+      <div className="wc-dx-frame" aria-hidden>
+        <span className="wc-dx-cross tl">+</span>
+        <span className="wc-dx-cross tr">+</span>
+        <span className="wc-dx-cross bl">+</span>
+        <span className="wc-dx-cross br">+</span>
+        <span className="wc-dx-cross tmid">+</span>
+        <span className="wc-dx-cross bmid">+</span>
+      </div>
+
+      <span className="wc-dx-edge l-top">{split('Strategy')}</span>
+      <span className="wc-dx-edge l-bot">{split('Creation')}</span>
+      <span className="wc-dx-edge r-top">{split('Systems')}</span>
+      <span className="wc-dx-edge r-bot">{split('Infrastructure')}</span>
+
+      <div className="wc-dx-eyebrow">
+        <span className="wc-dx-eyebrow-rule" />
+        <span>{split('02 — Structure')}</span>
+      </div>
+
+      <div className="wc-dx-hub">
+        <DivisionsHub />
+        <div className="wc-dx-hub-text">
+          <div className="wc-dx-hub-title">{split('Wolfe Co')}</div>
+          <div className="wc-dx-hub-sub">{split('Holding & Umbrella')}</div>
+        </div>
+      </div>
+
+      <div className="wc-dx-tree" aria-hidden>
+        <span className="wc-dx-tree-stem" />
+        <span className="wc-dx-tree-junction" />
+        <span className="wc-dx-tree-cross" />
+        <span className="wc-dx-tree-leg l" />
+        <span className="wc-dx-tree-leg c" />
+        <span className="wc-dx-tree-leg r" />
+        <span className="wc-dx-tree-node l" />
+        <span className="wc-dx-tree-node c" />
+        <span className="wc-dx-tree-node r" />
+      </div>
+
+      <div className="wc-dx-cols">
+        {DIVISIONS.map((d) => (
+          <div className="wc-dx-col" key={d.num}>
+            <div className="wc-dx-col-num">
+              <span>{split(d.num)}</span>
+              <span className="wc-ochre-dot" />
+            </div>
+            <div className="wc-dx-col-name">{split(d.name)}</div>
+            <div className="wc-dx-col-tag">{split(d.tag)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+const CapabilitiesInner = React.forwardRef(function CapabilitiesInner(_, ref) {
+  const split = makeSplitter();
+  return (
+    <div className="wc-stage wc-tilt-target wc-reveal-stage" ref={ref}>
+      <div className="wc-cap-label tl">
+        <span className="wc-num">{split('001')}</span>
+        <span>{split('Strategy')}</span>
+      </div>
+      <div className="wc-cap-label tr">
+        <span>{split('Video')}</span>
+        <span className="wc-num">{split('002')}</span>
+      </div>
+      <div className="wc-cap-label bl">
+        <span className="wc-num">{split('003')}</span>
+        <span>{split('Content')}</span>
+      </div>
+      <div className="wc-cap-label br">
+        <span>{split('Systems')}</span>
+        <span className="wc-num">{split('004')}</span>
+      </div>
+
+      <div className="wc-cap-center">
+        <span className="wc-cap-num">{split('03 — Capabilities')}</span>
+        <span className="wc-cap-rule" />
+        <span className="wc-cap-title">{split('Built To Travel')}</span>
+      </div>
+    </div>
+  );
+});
+
+const OffersInner = React.forwardRef(function OffersInner(_, ref) {
+  const split = makeSplitter();
+  return (
+    <div className="wc-offers-wrap">
+      <div className="wc-offers-inner wc-tilt-target wc-reveal-stage" ref={ref}>
+        <div className="wc-offers-head">
+          <span className="wc-cap-num">{split('04 — What I Build')}</span>
+          <span className="wc-cap-rule" />
+          <h2 className="wc-offers-head-title">
+            {split('Three Offers')}
+            <span className="wc-period">{split('.')}</span>
+          </h2>
+          <span className="wc-offers-head-note">
+            {split('From-prices · All + GST · Lakes Entrance, VIC')}
+          </span>
+        </div>
+
+        <div className="wc-offers-grid">
+          {OFFERS.map((o) => (
+            <div className="wc-offer-card" key={o.num}>
+              <div className="wc-offer-num">
+                <span>{split(o.num)}</span>
+                <span className="wc-ochre-dot" />
+              </div>
+              <div className="wc-offer-name">{split(o.name)}</div>
+              <div className="wc-offer-division">{split(o.division)}</div>
+              <div className="wc-offer-desc">{split(o.desc)}</div>
+
+              <div className="wc-offer-incl">
+                {o.inclusions.map((inc) => (
+                  <span className="wc-offer-incl-item" key={inc}>
+                    <span className="wc-offer-incl-tick" />
+                    <span>{split(inc)}</span>
+                  </span>
+                ))}
+              </div>
+
+              <div className="wc-offer-price">
+                <span className="wc-offer-price-from">{split('From')}</span>
+                <span className="wc-offer-price-num">{split(o.from)}</span>
+                <span className="wc-offer-price-gst">{split('+ GST')}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const AvailabilityInner = React.forwardRef(function AvailabilityInner(_, ref) {
+  const split = makeSplitter();
+  return (
+    <div className="wc-avail">
+      <div className="wc-avail-inner wc-tilt-target wc-reveal-stage" ref={ref}>
+        <span className="wc-avail-eyebrow">
+          <span className="wc-rule-36" />
+          <span>{split('05 — Availability')}</span>
+          <span className="wc-rule-36" />
+        </span>
+
+        <h2 className="wc-avail-title">
+          <span className="wc-statement-num">{split('2')}</span>
+          {split(' Founding Partner Slots Left For 2026')}
+          <span className="wc-period">{split('.')}</span>
+        </h2>
+
+        <div className="wc-avail-slots">
+          <div className="wc-slot wc-slot--open">
+            <span className="wc-slot-num">{split('01')}</span>
+            <span className="wc-slot-state">
+              <span className="wc-ochre-dot" />
+              {split('Open')}
+            </span>
+          </div>
+          <div className="wc-slot wc-slot--open">
+            <span className="wc-slot-num">{split('02')}</span>
+            <span className="wc-slot-state">
+              <span className="wc-ochre-dot" />
+              {split('Open')}
+            </span>
+          </div>
+          <div className="wc-slot wc-slot--filled">
+            <span className="wc-slot-num">{split('03')}</span>
+            <span className="wc-slot-state">{split('Held')}</span>
+          </div>
+        </div>
+
+        <p className="wc-avail-note">
+          {split('Wolfe Co is taking on two more long-term clients for the year. Founding rates lock in permanently — every other client onboarded after these slots close will pay more. These are the lowest rates this brand will ever charge.')}
+        </p>
+
+        <div className="wc-avail-detail">
+          <div className="wc-avail-detail-item">
+            <span className="wc-avail-detail-rule" />
+            <span className="wc-avail-detail-label">{split('Format')}</span>
+            <span className="wc-avail-detail-val">{split('Retainer or Bundle')}</span>
+          </div>
+          <div className="wc-avail-detail-item">
+            <span className="wc-avail-detail-rule" />
+            <span className="wc-avail-detail-label">{split('Lock-in')}</span>
+            <span className="wc-avail-detail-val">{split('Permanent Rate')}</span>
+          </div>
+          <div className="wc-avail-detail-item">
+            <span className="wc-avail-detail-rule" />
+            <span className="wc-avail-detail-label">{split('Scope')}</span>
+            <span className="wc-avail-detail-val">{split('Custom Per Client')}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const ProofInner = React.forwardRef(function ProofInner(_, ref) {
+  const split = makeSplitter();
+  return (
+    <div className="wc-stage wc-tilt-target wc-reveal-stage" ref={ref}>
+      <span className="wc-proof-eyebrow">{split('06 — Proof')}</span>
+
+      <div className="wc-proof-inner">
+        <div className="wc-metric">
+          <span className="wc-metric-rule" />
+          <span className="wc-metric-num">{split('150+')}</span>
+          <span className="wc-metric-label">{split('Projects')}</span>
+        </div>
+        <div className="wc-metric">
+          <span className="wc-metric-rule" />
+          <span className="wc-metric-num">{split('3.2M+')}</span>
+          <span className="wc-metric-label">{split('Views')}</span>
+        </div>
+        <div className="wc-metric">
+          <span className="wc-metric-rule" />
+          <span className="wc-metric-num">{split('98%')}</span>
+          <span className="wc-metric-label">{split('Retention')}</span>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const CTAInner = React.forwardRef(function CTAInner(_, ref) {
+  const split = makeSplitter();
+  return (
+    <>
+      <div className="wc-cta-inner wc-tilt-target wc-reveal-stage" ref={ref}>
+        <span className="wc-cta-eyebrow">
+          <span className="wc-ochre-dot" />
+          {split('07 — Begin')}
+        </span>
+        <h2 className="wc-cta-title">
+          {split('Ready To Build Authority')}
+          <span className="wc-period">{split('?')}</span>
+        </h2>
+        <button className="wc-btn" onClick={() => {}}>
+          {split('Claim a Founding Slot')}
+        </button>
+        <button className="wc-link" onClick={() => {}}>
+          {split('View Work')}
+        </button>
+      </div>
+
+      <div className="wc-footer-mark">
+        <WolfeMark size={14} ignoreScale />
+        <span>Wolfe Co — Coastal VIC</span>
+        <span className="wc-ochre-dot" />
+        <span>© 2026</span>
+      </div>
+    </>
+  );
+});
+
 const StatementInner = React.forwardRef(function StatementInner(_, ref) {
   const split = makeSplitter();
   return (
@@ -234,10 +495,35 @@ function Landing() {
   const { textScale, tagY } = useMedia();
   const heroMarkRef = useRef(null);
   const statementRef = useRef(null);
+  const divisionsRef = useRef(null);
+  const capabilitiesRef = useRef(null);
+  const offersRef = useRef(null);
+  const availabilityRef = useRef(null);
+  const proofRef = useRef(null);
+  const ctaRef = useRef(null);
 
   useScrollTilt(heroMarkRef);
-  useScrollTilt(statementRef, { maxTilt: 18, maxLift: -10 });
+
   useScrollEnter(statementRef);
+  useScrollTilt(statementRef, { maxTilt: 18, maxLift: -10 });
+
+  useScrollEnter(divisionsRef);
+  useScrollTilt(divisionsRef, { maxTilt: 16, maxLift: -8 });
+
+  useScrollEnter(capabilitiesRef);
+  useScrollTilt(capabilitiesRef, { maxTilt: 16, maxLift: -8 });
+
+  useScrollEnter(offersRef);
+  useScrollTilt(offersRef, { maxTilt: 14, maxLift: -8 });
+
+  useScrollEnter(availabilityRef);
+  useScrollTilt(availabilityRef, { maxTilt: 14, maxLift: -8 });
+
+  useScrollEnter(proofRef);
+  useScrollTilt(proofRef, { maxTilt: 18, maxLift: -10 });
+
+  useScrollEnter(ctaRef);
+  useScrollTilt(ctaRef, { maxTilt: 16, maxLift: -8 });
 
   useEffect(() => {
     let meta = document.querySelector('meta[name="viewport"]');
@@ -261,7 +547,11 @@ function Landing() {
         html, body, #root { margin: 0; padding: 0; background: #171618; }
         html {
           scroll-snap-type: y mandatory;
-          scroll-behavior: smooth;
+          overscroll-behavior-y: none;
+        }
+        @media (hover: none) and (pointer: coarse) {
+          /* Mobile / touch — let native momentum handle motion, snap softly. */
+          html { scroll-snap-type: y proximity; }
         }
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
@@ -286,6 +576,11 @@ function Landing() {
           display: flex;
           align-items: center;
           justify-content: center;
+          perspective: 1400px;
+          perspective-origin: 50% 60%;
+        }
+        @media (hover: none) and (pointer: coarse) {
+          .wc-section { scroll-snap-stop: normal; }
         }
 
         .wc-ochre-dot {
@@ -342,9 +637,12 @@ function Landing() {
           will-change: transform;
           backface-visibility: hidden;
         }
-        #statement {
-          perspective: 1400px;
-          perspective-origin: 50% 60%;
+        /* full-bleed wrapper used as a single tilt/reveal target inside a section */
+        .wc-stage {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
         }
 
         /* ---------- LETTER-BY-LETTER REVEAL ---------- */
@@ -1438,257 +1736,37 @@ function Landing() {
           {/* 3. DIVISIONS — schematic diagram layout */}
           <Section id="divisions" style={{ background: '#0a0a0c' }}>
             <SectionMedia id="divisions" overlay={0} />
-
-            <div className="wc-dx">
-              {/* Outer frame + corner crosses */}
-              <div className="wc-dx-frame" aria-hidden>
-                <span className="wc-dx-cross tl">+</span>
-                <span className="wc-dx-cross tr">+</span>
-                <span className="wc-dx-cross bl">+</span>
-                <span className="wc-dx-cross br">+</span>
-                <span className="wc-dx-cross tmid">+</span>
-                <span className="wc-dx-cross bmid">+</span>
-              </div>
-
-              {/* Vertical edge labels */}
-              <span className="wc-dx-edge l-top">Strategy</span>
-              <span className="wc-dx-edge l-bot">Creation</span>
-              <span className="wc-dx-edge r-top">Systems</span>
-              <span className="wc-dx-edge r-bot">Infrastructure</span>
-
-              {/* Eyebrow (top-right) */}
-              <div className="wc-dx-eyebrow">
-                <span className="wc-dx-eyebrow-rule" />
-                <span>02 — Structure</span>
-              </div>
-
-              {/* Hub */}
-              <div className="wc-dx-hub">
-                <DivisionsHub />
-                <div className="wc-dx-hub-text">
-                  <div className="wc-dx-hub-title">Wolfe Co</div>
-                  <div className="wc-dx-hub-sub">Holding & Umbrella</div>
-                </div>
-              </div>
-
-              {/* Bracket tree */}
-              <div className="wc-dx-tree" aria-hidden>
-                <span className="wc-dx-tree-stem" />
-                <span className="wc-dx-tree-junction" />
-                <span className="wc-dx-tree-cross" />
-                <span className="wc-dx-tree-leg l" />
-                <span className="wc-dx-tree-leg c" />
-                <span className="wc-dx-tree-leg r" />
-                <span className="wc-dx-tree-node l" />
-                <span className="wc-dx-tree-node c" />
-                <span className="wc-dx-tree-node r" />
-              </div>
-
-              {/* Three columns */}
-              <div className="wc-dx-cols">
-                {DIVISIONS.map((d) => (
-                  <div className="wc-dx-col" key={d.num}>
-                    <div className="wc-dx-col-num">
-                      <span>{d.num}</span>
-                      <span className="wc-ochre-dot" />
-                    </div>
-                    <div className="wc-dx-col-name">{d.name}</div>
-                    <div className="wc-dx-col-tag">{d.tag}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <DivisionsInner ref={divisionsRef} />
           </Section>
 
           {/* 4. CAPABILITIES */}
           <Section id="capabilities">
             <SectionMedia id="capabilities" overlay={0.4} />
-
-            <div className="wc-cap-label tl">
-              <span className="wc-num">001</span>
-              <span>Strategy</span>
-            </div>
-            <div className="wc-cap-label tr">
-              <span>Video</span>
-              <span className="wc-num">002</span>
-            </div>
-            <div className="wc-cap-label bl">
-              <span className="wc-num">003</span>
-              <span>Content</span>
-            </div>
-            <div className="wc-cap-label br">
-              <span>Systems</span>
-              <span className="wc-num">004</span>
-            </div>
-
-            <div className="wc-cap-center">
-              <span className="wc-cap-num">03 — Capabilities</span>
-              <span className="wc-cap-rule" />
-              <span className="wc-cap-title">Built To Travel</span>
-            </div>
+            <CapabilitiesInner ref={capabilitiesRef} />
           </Section>
 
           {/* 5. OFFERS */}
           <Section id="offers" style={{ background: '#171618' }}>
             <SectionMedia id="offers" overlay={0} />
-            <div className="wc-offers-wrap">
-              <div className="wc-offers-inner">
-                <div className="wc-offers-head">
-                  <span className="wc-cap-num">04 — What I Build</span>
-                  <span className="wc-cap-rule" />
-                  <h2 className="wc-offers-head-title">
-                    Three Offers<span className="wc-period">.</span>
-                  </h2>
-                  <span className="wc-offers-head-note">
-                    From-prices · All + GST · Lakes Entrance, VIC
-                  </span>
-                </div>
-
-                <div className="wc-offers-grid">
-                  {OFFERS.map((o) => (
-                    <div className="wc-offer-card" key={o.num}>
-                      <div className="wc-offer-num">
-                        <span>{o.num}</span>
-                        <span className="wc-ochre-dot" />
-                      </div>
-                      <div className="wc-offer-name">{o.name}</div>
-                      <div className="wc-offer-division">{o.division}</div>
-                      <div className="wc-offer-desc">{o.desc}</div>
-
-                      <div className="wc-offer-incl">
-                        {o.inclusions.map((inc) => (
-                          <span className="wc-offer-incl-item" key={inc}>
-                            <span className="wc-offer-incl-tick" />
-                            <span>{inc}</span>
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="wc-offer-price">
-                        <span className="wc-offer-price-from">From</span>
-                        <span className="wc-offer-price-num">{o.from}</span>
-                        <span className="wc-offer-price-gst">+ GST</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <OffersInner ref={offersRef} />
           </Section>
 
           {/* 6. AVAILABILITY */}
           <Section id="availability" style={{ background: '#171618' }}>
             <SectionMedia id="availability" overlay={0} />
-            <div className="wc-avail">
-              <div className="wc-avail-inner">
-                <span className="wc-avail-eyebrow">
-                  <span className="wc-rule-36" />
-                  <span>05 — Availability</span>
-                  <span className="wc-rule-36" />
-                </span>
-
-                <h2 className="wc-avail-title">
-                  <span className="wc-statement-num">2</span> Founding Partner Slots Left For 2026<span className="wc-period">.</span>
-                </h2>
-
-                <div className="wc-avail-slots">
-                  <div className="wc-slot wc-slot--open">
-                    <span className="wc-slot-num">01</span>
-                    <span className="wc-slot-state">
-                      <span className="wc-ochre-dot" />
-                      Open
-                    </span>
-                  </div>
-                  <div className="wc-slot wc-slot--open">
-                    <span className="wc-slot-num">02</span>
-                    <span className="wc-slot-state">
-                      <span className="wc-ochre-dot" />
-                      Open
-                    </span>
-                  </div>
-                  <div className="wc-slot wc-slot--filled">
-                    <span className="wc-slot-num">03</span>
-                    <span className="wc-slot-state">Held</span>
-                  </div>
-                </div>
-
-                <p className="wc-avail-note">
-                  Wolfe Co is taking on two more long-term clients for the year. Founding
-                  rates lock in permanently — every other client onboarded after these slots
-                  close will pay more. These are the lowest rates this brand will ever charge.
-                </p>
-
-                <div className="wc-avail-detail">
-                  <div className="wc-avail-detail-item">
-                    <span className="wc-avail-detail-rule" />
-                    <span className="wc-avail-detail-label">Format</span>
-                    <span className="wc-avail-detail-val">Retainer or Bundle</span>
-                  </div>
-                  <div className="wc-avail-detail-item">
-                    <span className="wc-avail-detail-rule" />
-                    <span className="wc-avail-detail-label">Lock-in</span>
-                    <span className="wc-avail-detail-val">Permanent Rate</span>
-                  </div>
-                  <div className="wc-avail-detail-item">
-                    <span className="wc-avail-detail-rule" />
-                    <span className="wc-avail-detail-label">Scope</span>
-                    <span className="wc-avail-detail-val">Custom Per Client</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AvailabilityInner ref={availabilityRef} />
           </Section>
 
           {/* 7. PROOF */}
           <Section id="proof">
             <SectionMedia id="proof" overlay={0.65} />
-
-            <span className="wc-proof-eyebrow">06 — Proof</span>
-
-            <div className="wc-proof-inner">
-              <div className="wc-metric">
-                <span className="wc-metric-rule" />
-                <span className="wc-metric-num">150+</span>
-                <span className="wc-metric-label">Projects</span>
-              </div>
-              <div className="wc-metric">
-                <span className="wc-metric-rule" />
-                <span className="wc-metric-num">3.2M+</span>
-                <span className="wc-metric-label">Views</span>
-              </div>
-              <div className="wc-metric">
-                <span className="wc-metric-rule" />
-                <span className="wc-metric-num">98%</span>
-                <span className="wc-metric-label">Retention</span>
-              </div>
-            </div>
+            <ProofInner ref={proofRef} />
           </Section>
 
           {/* 8. CTA */}
           <Section id="cta" style={{ background: '#171618' }}>
             <SectionMedia id="cta" overlay={0} />
-            <div className="wc-cta-inner">
-              <span className="wc-cta-eyebrow">
-                <span className="wc-ochre-dot" />
-                07 — Begin
-              </span>
-              <h2 className="wc-cta-title">
-                Ready To Build Authority<span className="wc-period">?</span>
-              </h2>
-              <button className="wc-btn" onClick={() => {}}>
-                Claim a Founding Slot
-              </button>
-              <button className="wc-link" onClick={() => {}}>
-                View Work
-              </button>
-            </div>
-
-            <div className="wc-footer-mark">
-              <WolfeMark size={14} ignoreScale />
-              <span>Wolfe Co — Coastal VIC</span>
-              <span className="wc-ochre-dot" />
-              <span>© 2026</span>
-            </div>
+            <CTAInner ref={ctaRef} />
           </Section>
         </div>
       </div>
