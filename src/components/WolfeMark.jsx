@@ -26,17 +26,43 @@ export default function WolfeMark({ size = 96, ignoreScale = false }) {
   const scale = ignoreScale ? 1 : (logoScale ?? 1);
   const final = size * scale;
   if (logo?.url) {
+    // Show animated power orb only on the large hero instance, not the tiny footer mark.
+    const showOrb = !ignoreScale && final >= 80;
+    // Wolf-head logo: dot sits roughly mid-line. W-mark logo: dot sits near top.
+    const orbTopPct = logo.url?.includes('head') ? 65 : 16;
     return (
-      <img
-        src={logo.url}
-        alt="Wolfe Co"
+      <div
         style={{
+          position: 'relative',
           width: final,
           height: final,
-          objectFit: 'contain',
           display: 'block',
         }}
-      />
+      >
+        <img
+          src={logo.url}
+          alt="Wolfe Co"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            display: 'block',
+          }}
+        />
+        {showOrb && (
+          <span
+            aria-hidden
+            className="wc-orb"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: `${orbTopPct}%`,
+              width: Math.max(8, final * 0.022),
+              height: Math.max(8, final * 0.022),
+            }}
+          />
+        )}
+      </div>
     );
   }
   return <SvgMark size={final} />;

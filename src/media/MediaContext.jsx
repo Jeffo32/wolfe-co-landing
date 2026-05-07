@@ -44,12 +44,12 @@ const buildInitialLogo = () => {
   if (import.meta.env.VITE_LOGO) {
     return { url: import.meta.env.VITE_LOGO, source: 'env', id: 'env' };
   }
-  return null;
+  return LOGO_PRESETS.find((p) => p.id === 'preset-head') || null;
 };
 
 const buildInitialScale = () => {
   const v = parseFloat(import.meta.env.VITE_LOGO_SCALE);
-  return Number.isFinite(v) ? v : 1;
+  return Number.isFinite(v) ? v : 8;
 };
 
 const MediaContext = createContext(null);
@@ -60,8 +60,8 @@ export function MediaProvider({ children }) {
   const [logo, setLogoState] = useState(buildInitialLogo);
   const [logoLibrary, setLogoLibrary] = useState([]); // user-uploaded options
   const [logoScale, setLogoScale] = useState(buildInitialScale);
-  const [textScale, setTextScale] = useState(1);
-  const [tagY, setTagY] = useState(0);
+  const [textScale, setTextScale] = useState(1.4);
+  const [tagY, setTagY] = useState(124);
   const [mediaOffsets, setMediaOffsets] = useState({}); // sectionId -> 0..100 (object-position Y %)
 
   const setMediaOffset = useCallback((id, value) => {

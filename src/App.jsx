@@ -257,22 +257,69 @@ function Landing() {
         }
         .wc-scroll-line {
           width: 1px;
-          height: 48px;
-          background: #CE703F;
-          animation: wcLine 2.2s ease-in-out infinite;
-          transform-origin: top;
+          height: 64px;
+          background: linear-gradient(
+            to bottom,
+            rgba(207,191,170,0) 0%,
+            rgba(207,191,170,0.5) 50%,
+            rgba(207,191,170,0) 100%
+          );
+          animation: wcCueBreathe 4s ease-in-out infinite;
         }
-        .wc-scroll-text {
-          font-family: 'Space Mono', monospace;
-          font-size: calc(9px * var(--text-scale, 1));
-          letter-spacing: 0.4em;
-          color: #CFBFAA;
-          opacity: 0.5;
-          text-transform: uppercase;
+        @keyframes wcCueBreathe {
+          0%, 100% { opacity: 0.25; transform: translateY(-6px); }
+          50%      { opacity: 1;    transform: translateY(6px); }
         }
-        @keyframes wcLine {
-          0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
-          50% { transform: scaleY(1); opacity: 1; }
+
+        /* ---------- POWER ORB (logo overlay) ---------- */
+        .wc-orb {
+          transform: translate(-50%, -50%);
+          border-radius: 999px;
+          background: radial-gradient(
+            circle at 35% 35%,
+            #FFE7B3 0%,
+            #F1A766 28%,
+            #CE703F 55%,
+            rgba(206,112,63,0) 78%
+          );
+          box-shadow:
+            0 0 8px rgba(255,200,140,0.8),
+            0 0 22px rgba(206,112,63,0.65),
+            0 0 48px rgba(206,112,63,0.35);
+          animation: wcOrbPulse 3.2s ease-in-out infinite;
+          pointer-events: none;
+        }
+        .wc-orb::before,
+        .wc-orb::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          border: 1px solid rgba(206,112,63,0.55);
+          opacity: 0;
+          animation: wcOrbRing 3.2s ease-out infinite;
+        }
+        .wc-orb::after {
+          animation-delay: 1.6s;
+          border-color: rgba(255,213,160,0.45);
+        }
+        @keyframes wcOrbPulse {
+          0%, 100% {
+            box-shadow:
+              0 0 6px rgba(255,200,140,0.7),
+              0 0 18px rgba(206,112,63,0.55),
+              0 0 36px rgba(206,112,63,0.25);
+          }
+          50% {
+            box-shadow:
+              0 0 10px rgba(255,210,160,1),
+              0 0 30px rgba(241,167,102,0.85),
+              0 0 64px rgba(206,112,63,0.5);
+          }
+        }
+        @keyframes wcOrbRing {
+          0%   { transform: scale(1);   opacity: 0.7; }
+          100% { transform: scale(3.6); opacity: 0; }
         }
 
         /* ---------- STATEMENT ---------- */
@@ -1232,7 +1279,6 @@ function Landing() {
             </div>
 
             <div className="wc-scroll-cue">
-              <span className="wc-scroll-text">Scroll</span>
               <span className="wc-scroll-line" />
             </div>
           </Section>
