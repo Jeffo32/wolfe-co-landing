@@ -630,11 +630,15 @@ function Landing() {
         .wc-tilt-target {
           transform:
             translateY(var(--lift, 0px))
+            scale(calc(1 + (1 - var(--p, 1)) * 0.10))
             rotateX(var(--tilt, 0deg));
           transform-origin: 50% 60%;
           transform-style: preserve-3d;
-          transition: transform 140ms cubic-bezier(0.22, 0.61, 0.36, 1);
-          will-change: transform;
+          filter: blur(calc((1 - var(--p, 1)) * 16px));
+          transition:
+            transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+            filter 220ms ease-out;
+          will-change: transform, filter;
           backface-visibility: hidden;
         }
         /* full-bleed wrapper used as a single tilt/reveal target inside a section */
@@ -645,29 +649,9 @@ function Landing() {
           height: 100%;
         }
 
-        /* ---------- LETTER-BY-LETTER REVEAL ---------- */
-        .wc-reveal-stage {
-          --p: 0;
-          --step: 0.009;   /* progress units between consecutive letters starting */
-          --rev: 0.05;     /* progress duration of a single letter's reveal */
-        }
-        .wc-letter {
-          display: inline-block;
-          --start: calc(var(--i, 0) * var(--step));
-          --r: clamp(0, calc((var(--p) - var(--start)) / var(--rev)), 1);
-          opacity: var(--r);
-          transform:
-            scale(calc(1 + (1 - var(--r)) * 0.55))
-            translateY(calc((1 - var(--r)) * -28px))
-            rotateX(calc((1 - var(--r)) * 35deg));
-          transform-origin: 50% 60%;
-          filter: blur(calc((1 - var(--r)) * 6px));
-          transition:
-            opacity 90ms linear,
-            transform 90ms cubic-bezier(0.18, 0.7, 0.28, 1),
-            filter 90ms linear;
-          will-change: transform, opacity, filter;
-        }
+        /* ---------- ENTRY REVEAL (whole-section blur + scale) ---------- */
+        .wc-reveal-stage { --p: 1; }
+        /* split letter spans render as plain inline text — no per-letter animation */
         .wc-hero-co {
           font-family: 'Space Mono', monospace;
           font-size: calc(13px * var(--text-scale, 1));
