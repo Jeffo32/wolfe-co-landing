@@ -158,7 +158,9 @@ function useScrollEnter(ref, { throw_ = 1, onProgress } = {}) {
       const section = el.closest('section') || el;
       const vh = window.innerHeight || 1;
       const rect = section.getBoundingClientRect();
-      const p = Math.max(0, Math.min(1, (vh - rect.top) / (vh * throw_)));
+      // Peak (1.0) when section is docked at top, decays in both directions.
+      // → effects fire whether you scroll into a section or back into it.
+      const p = Math.max(0, 1 - Math.abs(rect.top) / (vh * throw_));
       el.style.setProperty('--p', p.toFixed(4));
       if (onProgress && Math.abs(p - lastP) > 0.003) {
         lastP = p;
@@ -208,7 +210,6 @@ function useScrollTilt(ref, { maxTilt = 22, maxLift = -14, throw_ = 0.6 } = {}) 
 }
 
 const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
-  const split = makeSplitter();
   return (
     <div className="wc-dx wc-tilt-target wc-reveal-stage" ref={ref}>
       <div className="wc-dx-frame" aria-hidden>
@@ -220,21 +221,21 @@ const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
         <span className="wc-dx-cross bmid">+</span>
       </div>
 
-      <span className="wc-dx-edge l-top">{split('Strategy')}</span>
-      <span className="wc-dx-edge l-bot">{split('Creation')}</span>
-      <span className="wc-dx-edge r-top">{split('Systems')}</span>
-      <span className="wc-dx-edge r-bot">{split('Infrastructure')}</span>
+      <span className="wc-dx-edge l-top">Strategy</span>
+      <span className="wc-dx-edge l-bot">Creation</span>
+      <span className="wc-dx-edge r-top">Systems</span>
+      <span className="wc-dx-edge r-bot">Infrastructure</span>
 
       <div className="wc-dx-eyebrow">
         <span className="wc-dx-eyebrow-rule" />
-        <span>{split('02 — Structure')}</span>
+        <span>02 — Structure</span>
       </div>
 
       <div className="wc-dx-hub">
         <DivisionsHub />
         <div className="wc-dx-hub-text">
-          <div className="wc-dx-hub-title">{split('Wolfe Co')}</div>
-          <div className="wc-dx-hub-sub">{split('Holding & Umbrella')}</div>
+          <div className="wc-dx-hub-title">Wolfe Co</div>
+          <div className="wc-dx-hub-sub">Holding & Umbrella</div>
         </div>
       </div>
 
@@ -254,11 +255,11 @@ const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
         {DIVISIONS.map((d) => (
           <div className="wc-dx-col" key={d.num}>
             <div className="wc-dx-col-num">
-              <span>{split(d.num)}</span>
+              <span>{d.num}</span>
               <span className="wc-ochre-dot" />
             </div>
-            <div className="wc-dx-col-name">{split(d.name)}</div>
-            <div className="wc-dx-col-tag">{split(d.tag)}</div>
+            <div className="wc-dx-col-name">{d.name}</div>
+            <div className="wc-dx-col-tag">{d.tag}</div>
           </div>
         ))}
       </div>
@@ -267,49 +268,46 @@ const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
 });
 
 const CapabilitiesInner = React.forwardRef(function CapabilitiesInner(_, ref) {
-  const split = makeSplitter();
   return (
-    <div className="wc-stage wc-tilt-target wc-reveal-stage wc-no-blur" ref={ref}>
+    <div className="wc-stage wc-tilt-target wc-reveal-stage" ref={ref}>
       <div className="wc-cap-label tl">
-        <span className="wc-num">{split('001')}</span>
-        <span>{split('Strategy')}</span>
+        <span className="wc-num">001</span>
+        <span>Strategy</span>
       </div>
       <div className="wc-cap-label tr">
-        <span>{split('Video')}</span>
-        <span className="wc-num">{split('002')}</span>
+        <span>Video</span>
+        <span className="wc-num">002</span>
       </div>
       <div className="wc-cap-label bl">
-        <span className="wc-num">{split('003')}</span>
-        <span>{split('Content')}</span>
+        <span className="wc-num">003</span>
+        <span>Content</span>
       </div>
       <div className="wc-cap-label br">
-        <span>{split('Systems')}</span>
-        <span className="wc-num">{split('004')}</span>
+        <span>Systems</span>
+        <span className="wc-num">004</span>
       </div>
 
       <div className="wc-cap-center">
-        <span className="wc-cap-num">{split('03 — Capabilities')}</span>
+        <span className="wc-cap-num">03 — Capabilities</span>
         <span className="wc-cap-rule" />
-        <span className="wc-cap-title">{split('Built To Travel')}</span>
+        <span className="wc-cap-title">Built To Travel</span>
       </div>
     </div>
   );
 });
 
 const OffersInner = React.forwardRef(function OffersInner(_, ref) {
-  const split = makeSplitter();
   return (
     <div className="wc-offers-wrap">
-      <div className="wc-offers-inner wc-tilt-target wc-reveal-stage wc-no-blur" ref={ref}>
+      <div className="wc-offers-inner wc-tilt-target wc-reveal-stage" ref={ref}>
         <div className="wc-offers-head">
-          <span className="wc-cap-num">{split('04 — What I Build')}</span>
+          <span className="wc-cap-num">04 — What I Build</span>
           <span className="wc-cap-rule" />
           <h2 className="wc-offers-head-title">
-            {split('Three Offers')}
-            <span className="wc-period">{split('.')}</span>
+            Three Offers<span className="wc-period">.</span>
           </h2>
           <span className="wc-offers-head-note">
-            {split('From-prices · All + GST · Lakes Entrance, VIC')}
+            From-prices · All + GST · Lakes Entrance, VIC
           </span>
         </div>
 
@@ -317,26 +315,26 @@ const OffersInner = React.forwardRef(function OffersInner(_, ref) {
           {OFFERS.map((o) => (
             <div className="wc-offer-card" key={o.num}>
               <div className="wc-offer-num">
-                <span>{split(o.num)}</span>
+                <span>{o.num}</span>
                 <span className="wc-ochre-dot" />
               </div>
-              <div className="wc-offer-name">{split(o.name)}</div>
-              <div className="wc-offer-division">{split(o.division)}</div>
-              <div className="wc-offer-desc">{split(o.desc)}</div>
+              <div className="wc-offer-name">{o.name}</div>
+              <div className="wc-offer-division">{o.division}</div>
+              <div className="wc-offer-desc">{o.desc}</div>
 
               <div className="wc-offer-incl">
                 {o.inclusions.map((inc) => (
                   <span className="wc-offer-incl-item" key={inc}>
                     <span className="wc-offer-incl-tick" />
-                    <span>{split(inc)}</span>
+                    <span>{inc}</span>
                   </span>
                 ))}
               </div>
 
               <div className="wc-offer-price">
-                <span className="wc-offer-price-from">{split('From')}</span>
-                <span className="wc-offer-price-num">{split(o.from)}</span>
-                <span className="wc-offer-price-gst">{split('+ GST')}</span>
+                <span className="wc-offer-price-from">From</span>
+                <span className="wc-offer-price-num">{o.from}</span>
+                <span className="wc-offer-price-gst">+ GST</span>
               </div>
             </div>
           ))}
@@ -446,28 +444,24 @@ const CTAInner = React.forwardRef(function CTAInner(_, ref) {
 });
 
 const StatementInner = React.forwardRef(function StatementInner(_, ref) {
-  const w = makeWordSplitter();
   return (
-    <div className="wc-statement-inner wc-tilt-target wc-reveal-stage wc-no-blur" ref={ref}>
+    <div className="wc-statement-inner wc-tilt-target wc-reveal-stage" ref={ref}>
       <div className="wc-statement-eyebrow">
         <span className="wc-rule-36" />
-        <span>{w('01 — Position')}</span>
+        <span>01 — Position</span>
         <span className="wc-rule-36" />
       </div>
 
       <h1 className="wc-statement-line">
-        <span className="wc-statement-num">{w('20')}</span>
-        {' '}{w('Years Of Knowing What ‘Good’ Looks Like')}<span className="wc-period">.</span>
+        <span className="wc-statement-num">20</span> Years Of Knowing What &lsquo;Good&rsquo; Looks Like<span className="wc-period">.</span>
       </h1>
 
       <div className="wc-credo">
-        <span className="wc-credo-line">{w('We Know Good When We See It,')}</span>
-        <span className="wc-credo-line">
-          {w('Hear It, And Feel It')}<span className="wc-period">.</span>
-        </span>
+        <span className="wc-credo-line">We Know Good When We See It,</span>
+        <span className="wc-credo-line">Hear It, And Feel It<span className="wc-period">.</span></span>
         <span className="wc-credo-foot">
           <span className="wc-ochre-dot" />
-          {w('Two Decades Of Practice')}
+          Two Decades Of Practice
           <span className="wc-ochre-dot" />
         </span>
       </div>
@@ -614,15 +608,11 @@ function Landing() {
         .wc-tilt-target {
           transform:
             translateY(var(--lift, 0px))
-            scale(calc(1 + (1 - var(--p, 1)) * 0.10))
             rotateX(var(--tilt, 0deg));
           transform-origin: 50% 60%;
           transform-style: preserve-3d;
-          filter: blur(calc((1 - var(--p, 1)) * 16px));
-          transition:
-            transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
-            filter 220ms ease-out;
-          will-change: transform, filter;
+          transition: transform 160ms cubic-bezier(0.22, 0.61, 0.36, 1);
+          will-change: transform;
           backface-visibility: hidden;
         }
         /* full-bleed wrapper used as a single tilt/reveal target inside a section.
@@ -642,30 +632,9 @@ function Landing() {
         /* ---------- ENTRY REVEAL (whole-section blur + scale) ---------- */
         .wc-reveal-stage { --p: 1; }
 
-        /* opt-out modifier: keep tilt, drop the entry blur+scale */
-        .wc-tilt-target.wc-no-blur {
-          filter: none;
-          transform:
-            translateY(var(--lift, 0px))
-            rotateX(var(--tilt, 0deg));
-        }
-
-        /* word-level emergence (used on Statement section) */
-        .wc-word {
-          display: inline-block;
-          --start: calc(var(--i, 0) * 0.06);
-          --r: clamp(0, calc((var(--p, 1) - var(--start)) / 0.20), 1);
-          opacity: var(--r);
-          transform: translateY(calc((1 - var(--r)) * 28px));
-          transition:
-            opacity 220ms ease-out,
-            transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
-          will-change: transform, opacity;
-        }
-
         /* offers cards slide in from L / up / R driven by --p */
         #offers .wc-offer-card {
-          transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+          transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
           will-change: transform;
         }
         #offers .wc-offer-card:nth-child(1) {
@@ -676,6 +645,18 @@ function Landing() {
         }
         #offers .wc-offer-card:nth-child(3) {
           transform: translateX(calc(90px * (1 - var(--p, 1))));
+        }
+
+        /* availability cards: subtle nudge in from L / R */
+        #availability .wc-av2-card {
+          transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
+          will-change: transform;
+        }
+        #availability .wc-av2-card:nth-child(1) {
+          transform: translateX(calc(-30px * (1 - var(--p, 1))));
+        }
+        #availability .wc-av2-card:nth-child(2) {
+          transform: translateX(calc(30px * (1 - var(--p, 1))));
         }
 
         /* fix word-spacing on the credo footer ("Two Decades Of Practice") */
@@ -847,7 +828,7 @@ function Landing() {
           pointer-events: none;
         }
 
-        /* Drifting specular highlight — gives the orb a "sunlight on celestial body" feel */
+        /* Drifting specular highlight — sunlight on celestial body, transform-only */
         .wc-orb-spec {
           position: absolute;
           width: 32%; height: 32%;
@@ -859,59 +840,17 @@ function Landing() {
             rgba(255,210,160,0.45) 38%,
             rgba(255,200,140,0)    78%
           );
-          filter: blur(1.4px);
-          mix-blend-mode: screen;
-          animation: wcOrbDrift 7.8s ease-in-out infinite;
+          opacity: 0.88;
+          animation: wcOrbDrift 8s ease-in-out infinite;
           pointer-events: none;
+          will-change: transform;
         }
         @keyframes wcOrbDrift {
-          0%   { transform: translate(0, 0)        scale(1);    opacity: 0.78; }
-          22%  { transform: translate(60%, -8%)    scale(0.82); opacity: 1; }
-          46%  { transform: translate(72%, 38%)    scale(1.12); opacity: 0.62; }
-          70%  { transform: translate(12%, 62%)    scale(0.9);  opacity: 0.95; }
-          100% { transform: translate(0, 0)        scale(1);    opacity: 0.78; }
+          0%, 100% { transform: translate(0, 0); }
+          33%      { transform: translate(60%, 8%); }
+          66%      { transform: translate(20%, 55%); }
         }
 
-        /* Inner shimmer — rotating warm arc inside the orb body */
-        .wc-orb-core {
-          position: absolute;
-          inset: 10%;
-          border-radius: 999px;
-          background: conic-gradient(
-            from 0turn,
-            rgba(255,225,180,0)    0%,
-            rgba(255,225,180,0)    8%,
-            rgba(255,210,150,0.55) 22%,
-            rgba(255,160,90,0.85)  36%,
-            rgba(255,210,150,0.55) 50%,
-            rgba(255,225,180,0)    66%,
-            rgba(255,225,180,0)    100%
-          );
-          filter: blur(1.4px);
-          mix-blend-mode: screen;
-          animation: wcOrbInnerSpin 5.2s linear infinite;
-          pointer-events: none;
-          transform-origin: 50% 50%;
-        }
-        .wc-orb-core::after {
-          content: '';
-          position: absolute;
-          inset: 30%;
-          border-radius: 999px;
-          background: radial-gradient(
-            circle at 50% 50%,
-            rgba(255,235,200,0.85) 0%,
-            rgba(255,200,140,0)    72%
-          );
-          animation: wcOrbCoreBreath 2.4s ease-in-out infinite;
-        }
-        @keyframes wcOrbInnerSpin {
-          to { transform: rotate(360deg); }
-        }
-        @keyframes wcOrbCoreBreath {
-          0%, 100% { transform: scale(0.78); opacity: 0.55; }
-          50%      { transform: scale(1.18); opacity: 1; }
-        }
 
         /* ---------- STATEMENT ---------- */
         .wc-statement-bg {

@@ -68,7 +68,6 @@ export default function WolfeMark({ size = 96, ignoreScale = false }) {
               height: orbSize,
             }}
           >
-            <span className="wc-orb-core" />
             <span className="wc-orb-spec" />
           </span>
         )}
