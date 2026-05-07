@@ -136,23 +136,21 @@ export default function WolfeCoLanding() {
   );
 }
 
-function Landing() {
-  const { textScale, tagY } = useMedia();
-  const heroMarkRef = useRef(null);
-
-  // 3D tilt on hero logo, driven by scroll progress past the hero section.
+// Hook: drives a 3D tilt-up on `ref` based on how far the nearest <section> has
+// scrolled past the top of the viewport. Sets CSS vars --tilt and --lift.
+function useScrollTilt(ref, { maxTilt = 22, maxLift = -14, throw_ = 0.6 } = {}) {
   useEffect(() => {
     let raf = 0;
     const apply = () => {
       raf = 0;
-      const el = heroMarkRef.current;
+      const el = ref.current;
       if (!el) return;
+      const section = el.closest('section') || el;
       const vh = window.innerHeight || 1;
-      // Reach max tilt when we've scrolled ~60% of the viewport past the hero,
-      // so the tilt completes during the brief snap animation rather than only at the end.
-      const progress = Math.max(0, Math.min(1, window.scrollY / (vh * 0.6)));
-      el.style.setProperty('--logo-tilt', `${(progress * 22).toFixed(2)}deg`);
-      el.style.setProperty('--logo-lift', `${(progress * -14).toFixed(1)}px`);
+      const rect = section.getBoundingClientRect();
+      const progress = Math.max(0, Math.min(1, -rect.top / (vh * throw_)));
+      el.style.setProperty('--tilt', `${(progress * maxTilt).toFixed(2)}deg`);
+      el.style.setProperty('--lift', `${(progress * maxLift).toFixed(1)}px`);
     };
     const onScroll = () => {
       if (raf) return;
@@ -164,7 +162,16 @@ function Landing() {
       window.removeEventListener('scroll', onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [ref, maxTilt, maxLift, throw_]);
+}
+
+function Landing() {
+  const { textScale, tagY } = useMedia();
+  const heroMarkRef = useRef(null);
+  const statementRef = useRef(null);
+
+  useScrollTilt(heroMarkRef);
+  useScrollTilt(statementRef, { maxTilt: 18, maxLift: -10 });
 
   useEffect(() => {
     let meta = document.querySelector('meta[name="viewport"]');
@@ -258,14 +265,20 @@ function Landing() {
           perspective: 1100px;
           perspective-origin: 50% 60%;
         }
-        .wc-hero-mark > * {
+        .wc-hero-mark > *,
+        .wc-tilt-target {
           transform:
-            translateY(var(--logo-lift, 0px))
-            rotateX(var(--logo-tilt, 0deg));
+            translateY(var(--lift, 0px))
+            rotateX(var(--tilt, 0deg));
           transform-origin: 50% 60%;
           transform-style: preserve-3d;
           transition: transform 140ms cubic-bezier(0.22, 0.61, 0.36, 1);
           will-change: transform;
+          backface-visibility: hidden;
+        }
+        #statement {
+          perspective: 1400px;
+          perspective-origin: 50% 60%;
         }
         .wc-hero-co {
           font-family: 'Space Mono', monospace;
@@ -1329,7 +1342,7 @@ function Landing() {
           {/* 2. STATEMENT */}
           <Section id="statement">
             <SectionMedia id="statement" overlay={0.55} />
-            <div className="wc-statement-inner">
+            <div className="wc-statement-inner wc-tilt-target" ref={statementRef}>
               <div className="wc-statement-eyebrow">
                 <span className="wc-rule-36" />
                 <span>01 — Position</span>
