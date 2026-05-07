@@ -57,19 +57,43 @@ export default function WolfeMark({ size = 96, ignoreScale = false }) {
           }}
         />
         {showOrb && (
-          <span
-            aria-hidden
-            className="wc-orb"
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: `${orb.topPct}%`,
-              width: orbSize,
-              height: orbSize,
-            }}
-          >
-            <span className="wc-orb-spec" />
-          </span>
+          <>
+            <span
+              aria-hidden
+              className="wc-orb-ring"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: `${orb.topPct}%`,
+                width: orbSize,
+                height: orbSize,
+              }}
+            />
+            <span
+              aria-hidden
+              className="wc-orb-ring delay"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: `${orb.topPct}%`,
+                width: orbSize,
+                height: orbSize,
+              }}
+            />
+            <span
+              aria-hidden
+              className="wc-orb"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: `${orb.topPct}%`,
+                width: orbSize,
+                height: orbSize,
+              }}
+            >
+              <span className="wc-orb-spec" />
+            </span>
+          </>
         )}
       </div>
     );

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MediaProvider } from './media/MediaContext.jsx';
 import SectionMedia from './components/SectionMedia.jsx';
 import BackgroundEditor from './components/BackgroundEditor.jsx';
@@ -6,10 +6,10 @@ import WolfeMark from './components/WolfeMark.jsx';
 import { useMedia } from './media/MediaContext.jsx';
 import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
 
-function easeOutQuad(t) { return 1 - (1 - t) ** 2; }
+function easeOutQuart(t) { return 1 - (1 - t) ** 4; }
 function Counter({ target, progress, suffix = '', decimals = 0 }) {
   const t = Math.max(0, Math.min(1, progress));
-  return (target * easeOutQuad(t)).toFixed(decimals) + suffix;
+  return (target * easeOutQuart(t)).toFixed(decimals) + suffix;
 }
 
 // ---------- DIVISIONS HUB (concentric rings + sparkles) ----------
@@ -211,7 +211,7 @@ function useScrollTilt(ref, { maxTilt = 22, maxLift = -14, throw_ = 0.6 } = {}) 
 
 const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
   return (
-    <div className="wc-dx wc-tilt-target wc-reveal-stage" ref={ref}>
+    <div className="wc-dx wc-tilt-target wc-reveal-stage wc-blur" ref={ref}>
       <div className="wc-dx-frame" aria-hidden>
         <span className="wc-dx-cross tl">+</span>
         <span className="wc-dx-cross tr">+</span>
@@ -379,33 +379,62 @@ const AvailabilityInner = React.forwardRef(function AvailabilityInner(_, ref) {
 });
 
 const ProofInner = React.forwardRef(function ProofInner(_, ref) {
-  const [p, setP] = useState(1);
+  const [displayP, setDisplayP] = useState(1);
+  const stateRef = useRef({ target: 1, raf: 0 });
   const localRef = useRef(null);
   const setRef = (node) => {
     localRef.current = node;
     if (typeof ref === 'function') ref(node);
     else if (ref) ref.current = node;
   };
-  useScrollEnter(localRef, { onProgress: setP });
+
+  // Damped catch-up: displayP lerps toward stateRef.current.target.
+  // rAF runs only while there's a delta to close → numbers continue
+  // ticking briefly after the scroll has stopped.
+  const animate = useCallback(() => {
+    setDisplayP((d) => {
+      const t = stateRef.current.target;
+      const delta = t - d;
+      if (Math.abs(delta) < 0.0005) {
+        stateRef.current.raf = 0;
+        return t;
+      }
+      stateRef.current.raf = requestAnimationFrame(animate);
+      return d + delta * 0.06;
+    });
+  }, []);
+
+  const onProgress = useCallback((p) => {
+    stateRef.current.target = p;
+    if (!stateRef.current.raf) {
+      stateRef.current.raf = requestAnimationFrame(animate);
+    }
+  }, [animate]);
+
+  useScrollEnter(localRef, { onProgress });
+
+  useEffect(() => () => {
+    if (stateRef.current.raf) cancelAnimationFrame(stateRef.current.raf);
+  }, []);
 
   return (
-    <div className="wc-stage wc-tilt-target wc-reveal-stage wc-no-blur" ref={setRef}>
+    <div className="wc-stage wc-tilt-target wc-reveal-stage" ref={setRef}>
       <span className="wc-proof-eyebrow">06 — Proof</span>
 
       <div className="wc-proof-inner">
         <div className="wc-metric">
           <span className="wc-metric-rule" />
-          <span className="wc-metric-num"><Counter target={150} progress={p} suffix="+" /></span>
+          <span className="wc-metric-num"><Counter target={150} progress={displayP} suffix="+" /></span>
           <span className="wc-metric-label">Projects</span>
         </div>
         <div className="wc-metric">
           <span className="wc-metric-rule" />
-          <span className="wc-metric-num"><Counter target={3.2} progress={p} suffix="M+" decimals={1} /></span>
+          <span className="wc-metric-num"><Counter target={3.2} progress={displayP} suffix="M+" decimals={1} /></span>
           <span className="wc-metric-label">Views</span>
         </div>
         <div className="wc-metric">
           <span className="wc-metric-rule" />
-          <span className="wc-metric-num"><Counter target={98} progress={p} suffix="%" /></span>
+          <span className="wc-metric-num"><Counter target={98} progress={displayP} suffix="%" /></span>
           <span className="wc-metric-label">Retention</span>
         </div>
       </div>
@@ -610,10 +639,14 @@ function Landing() {
             translateY(var(--lift, 0px))
             rotateX(var(--tilt, 0deg));
           transform-origin: 50% 60%;
-          transform-style: preserve-3d;
-          transition: transform 160ms cubic-bezier(0.22, 0.61, 0.36, 1);
-          will-change: transform;
-          backface-visibility: hidden;
+          transition: transform 90ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .wc-hero-mark > * { will-change: transform; }
+        .wc-tilt-target.wc-blur {
+          filter: blur(calc((1 - var(--p, 1)) * 10px));
+          transition:
+            transform 90ms cubic-bezier(0.22, 0.61, 0.36, 1),
+            filter 180ms ease-out;
         }
         /* full-bleed wrapper used as a single tilt/reveal target inside a section.
            Mirrors .wc-section's flex centering so absolute children (corner labels,
@@ -634,8 +667,7 @@ function Landing() {
 
         /* offers cards slide in from L / up / R driven by --p */
         #offers .wc-offer-card {
-          transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
-          will-change: transform;
+          transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
         }
         #offers .wc-offer-card:nth-child(1) {
           transform: translateX(calc(-90px * (1 - var(--p, 1))));
@@ -647,10 +679,22 @@ function Landing() {
           transform: translateX(calc(90px * (1 - var(--p, 1))));
         }
 
+        /* capabilities corner labels nudge in from L / R driven by --p */
+        #capabilities .wc-cap-label {
+          transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        #capabilities .wc-cap-label.tl,
+        #capabilities .wc-cap-label.bl {
+          transform: translateX(calc(-50px * (1 - var(--p, 1))));
+        }
+        #capabilities .wc-cap-label.tr,
+        #capabilities .wc-cap-label.br {
+          transform: translateX(calc(50px * (1 - var(--p, 1))));
+        }
+
         /* availability cards: subtle nudge in from L / R */
         #availability .wc-av2-card {
-          transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
-          will-change: transform;
+          transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
         }
         #availability .wc-av2-card:nth-child(1) {
           transform: translateX(calc(-30px * (1 - var(--p, 1))));
@@ -822,10 +866,27 @@ function Landing() {
             rgba(206,112,63,0) 78%
           );
           box-shadow:
-            0 0 9px rgba(255,200,140,0.85),
-            0 0 24px rgba(206,112,63,0.62),
-            0 0 52px rgba(206,112,63,0.32);
+            0 0 6px rgba(255,200,140,0.7),
+            0 0 16px rgba(206,112,63,0.4);
           pointer-events: none;
+        }
+        /* Pulse rings — siblings of the orb, transform+opacity only (compositor-only) */
+        .wc-orb-ring {
+          border-radius: 999px;
+          border: 1px solid rgba(255,210,160,0.65);
+          pointer-events: none;
+          transform: translate(-50%, -50%) scale(1);
+          animation: wcOrbRing 3.4s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+          will-change: transform, opacity;
+        }
+        .wc-orb-ring.delay {
+          animation-delay: 1.7s;
+          border-color: rgba(206,112,63,0.55);
+        }
+        @keyframes wcOrbRing {
+          0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.75; }
+          70%  { opacity: 0.05; }
+          100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
         }
 
         /* Drifting specular highlight — sunlight on celestial body, transform-only */
