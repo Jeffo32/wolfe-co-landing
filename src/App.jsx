@@ -4,6 +4,7 @@ import SectionMedia from './components/SectionMedia.jsx';
 import BackgroundEditor from './components/BackgroundEditor.jsx';
 import WolfeMark from './components/WolfeMark.jsx';
 import { useMedia } from './media/MediaContext.jsx';
+import { makeSplitter } from './components/SplitText.jsx';
 
 // ---------- DIVISIONS HUB (concentric rings + sparkles) ----------
 const DivisionsHub = () => (
@@ -136,6 +137,36 @@ export default function WolfeCoLanding() {
   );
 }
 
+// Hook: drives an entrance progress on `ref` based on how far the nearest
+// <section> has entered the viewport. Sets CSS var --p (0 → 1).
+// 0 = section's top edge is one full viewport below the top.
+// 1 = section's top edge has reached the top of the viewport.
+function useScrollEnter(ref, { throw_ = 1 } = {}) {
+  useEffect(() => {
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const section = el.closest('section') || el;
+      const vh = window.innerHeight || 1;
+      const rect = section.getBoundingClientRect();
+      const p = Math.max(0, Math.min(1, (vh - rect.top) / (vh * throw_)));
+      el.style.setProperty('--p', p.toFixed(4));
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(apply);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    apply();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [ref, throw_]);
+}
+
 // Hook: drives a 3D tilt-up on `ref` based on how far the nearest <section> has
 // scrolled past the top of the viewport. Sets CSS vars --tilt and --lift.
 function useScrollTilt(ref, { maxTilt = 22, maxLift = -14, throw_ = 0.6 } = {}) {
@@ -165,6 +196,40 @@ function useScrollTilt(ref, { maxTilt = 22, maxLift = -14, throw_ = 0.6 } = {}) 
   }, [ref, maxTilt, maxLift, throw_]);
 }
 
+const StatementInner = React.forwardRef(function StatementInner(_, ref) {
+  const split = makeSplitter();
+  return (
+    <div className="wc-statement-inner wc-tilt-target wc-reveal-stage" ref={ref}>
+      <div className="wc-statement-eyebrow">
+        <span className="wc-rule-36" />
+        <span>{split('01 — Position')}</span>
+        <span className="wc-rule-36" />
+      </div>
+
+      <h1 className="wc-statement-line">
+        <span className="wc-statement-num">{split('20')}</span>
+        {split(' Years Of Knowing What ')}
+        {split('‘Good’')}
+        {split(' Looks Like')}
+        <span className="wc-period">{split('.')}</span>
+      </h1>
+
+      <div className="wc-credo">
+        <span className="wc-credo-line">{split('I Know Good When I See It,')}</span>
+        <span className="wc-credo-line">
+          {split('Hear It, And Feel It')}
+          <span className="wc-period">{split('.')}</span>
+        </span>
+        <span className="wc-credo-foot">
+          <span className="wc-ochre-dot" />
+          {split('Two Decades Of Practice')}
+          <span className="wc-ochre-dot" />
+        </span>
+      </div>
+    </div>
+  );
+});
+
 function Landing() {
   const { textScale, tagY } = useMedia();
   const heroMarkRef = useRef(null);
@@ -172,6 +237,7 @@ function Landing() {
 
   useScrollTilt(heroMarkRef);
   useScrollTilt(statementRef, { maxTilt: 18, maxLift: -10 });
+  useScrollEnter(statementRef);
 
   useEffect(() => {
     let meta = document.querySelector('meta[name="viewport"]');
@@ -279,6 +345,30 @@ function Landing() {
         #statement {
           perspective: 1400px;
           perspective-origin: 50% 60%;
+        }
+
+        /* ---------- LETTER-BY-LETTER REVEAL ---------- */
+        .wc-reveal-stage {
+          --p: 0;
+          --step: 0.009;   /* progress units between consecutive letters starting */
+          --rev: 0.05;     /* progress duration of a single letter's reveal */
+        }
+        .wc-letter {
+          display: inline-block;
+          --start: calc(var(--i, 0) * var(--step));
+          --r: clamp(0, calc((var(--p) - var(--start)) / var(--rev)), 1);
+          opacity: var(--r);
+          transform:
+            scale(calc(1 + (1 - var(--r)) * 0.55))
+            translateY(calc((1 - var(--r)) * -28px))
+            rotateX(calc((1 - var(--r)) * 35deg));
+          transform-origin: 50% 60%;
+          filter: blur(calc((1 - var(--r)) * 6px));
+          transition:
+            opacity 90ms linear,
+            transform 90ms cubic-bezier(0.18, 0.7, 0.28, 1),
+            filter 90ms linear;
+          will-change: transform, opacity, filter;
         }
         .wc-hero-co {
           font-family: 'Space Mono', monospace;
@@ -1342,27 +1432,7 @@ function Landing() {
           {/* 2. STATEMENT */}
           <Section id="statement">
             <SectionMedia id="statement" overlay={0.55} />
-            <div className="wc-statement-inner wc-tilt-target" ref={statementRef}>
-              <div className="wc-statement-eyebrow">
-                <span className="wc-rule-36" />
-                <span>01 — Position</span>
-                <span className="wc-rule-36" />
-              </div>
-
-              <h1 className="wc-statement-line">
-                <span className="wc-statement-num">20</span> Years Of Knowing What &lsquo;Good&rsquo; Looks Like<span className="wc-period">.</span>
-              </h1>
-
-              <div className="wc-credo">
-                <span className="wc-credo-line">I Know Good When I See It,</span>
-                <span className="wc-credo-line">Hear It, And Feel It<span className="wc-period">.</span></span>
-                <span className="wc-credo-foot">
-                  <span className="wc-ochre-dot" />
-                  Two Decades Of Practice
-                  <span className="wc-ochre-dot" />
-                </span>
-              </div>
-            </div>
+            <StatementInner ref={statementRef} />
           </Section>
 
           {/* 3. DIVISIONS — schematic diagram layout */}
