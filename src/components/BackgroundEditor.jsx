@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMedia, SECTION_LIST, LOGO_PRESETS } from '../media/MediaContext.jsx';
 
 export default function BackgroundEditor() {
@@ -9,7 +9,29 @@ export default function BackgroundEditor() {
     textScale, setTextScale,
     tagY, setTagY,
     mediaOffsets, setMediaOffset,
+    devMode, setDevMode,
   } = useMedia();
+
+  // Long-press on the BG button toggles dev mode (works on iOS where shake
+  // requires permission). Suppresses the click that follows.
+  const longPressTimer = useRef(0);
+  const longPressed = useRef(false);
+  const startLongPress = () => {
+    longPressed.current = false;
+    longPressTimer.current = window.setTimeout(() => {
+      longPressed.current = true;
+      setDevMode((d) => !d);
+      // haptic feedback if available
+      if (navigator.vibrate) navigator.vibrate(20);
+    }, 700);
+  };
+  const cancelLongPress = () => {
+    clearTimeout(longPressTimer.current);
+  };
+  const onBgClick = () => {
+    if (longPressed.current) { longPressed.current = false; return; }
+    setEditorOpen((o) => !o);
+  };
 
   // Toggle hotkey: B
   useEffect(() => {
@@ -24,7 +46,40 @@ export default function BackgroundEditor() {
 
   return (
     <>
-      {/* Floating BG button removed in v2 — editor still accessible via B key. */}
+      <button
+        onClick={onBgClick}
+        onPointerDown={startLongPress}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onPointerCancel={cancelLongPress}
+        onMouseEnter={() => {
+          if (typeof window === 'undefined') return;
+          if (!window.matchMedia('(hover: hover)').matches) return;
+          setEditorOpen((o) => !o);
+        }}
+        style={{
+          position: 'fixed',
+          right: 18,
+          bottom: 18,
+          zIndex: 10000,
+          width: 44, height: 44,
+          borderRadius: 999,
+          background: editorOpen ? '#CE703F' : '#222125',
+          border: '1px solid rgba(207,191,170,0.2)',
+          color: '#CFBFAA',
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 9,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          touchAction: 'manipulation',
+        }}
+        aria-label="Toggle menu"
+        title="Menu (B). Long-press for dev tools."
+      >
+        BG
+      </button>
 
       <aside
         style={{
@@ -53,7 +108,7 @@ export default function BackgroundEditor() {
         }}>
           <div>
             <div style={{ fontSize: 9, letterSpacing: '0.4em', opacity: 0.5, textTransform: 'uppercase' }}>
-              Wolfe Co · Editor
+              Wolfe Co
             </div>
             <div style={{
               fontFamily: "'Inter Tight', sans-serif",
@@ -63,7 +118,7 @@ export default function BackgroundEditor() {
               textTransform: 'uppercase',
               marginTop: 4,
             }}>
-              Section Backgrounds
+              {devMode ? 'Editor' : 'Menu'}
             </div>
           </div>
           <button
@@ -74,11 +129,39 @@ export default function BackgroundEditor() {
               fontSize: 18, opacity: 0.6,
               padding: 4,
             }}
-            aria-label="Close editor"
+            aria-label="Close menu"
           >×</button>
         </header>
 
-        <div style={{ overflowY: 'auto', flex: 1, padding: '14px 18px 28px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '20px 18px 28px' }}>
+          <NavBlock />
+
+          {!devMode && (
+            <div style={{
+              marginTop: 22,
+              fontSize: 8.5,
+              letterSpacing: '0.3em',
+              opacity: 0.25,
+              textTransform: 'uppercase',
+              textAlign: 'center',
+              fontFamily: "'Space Mono', monospace",
+            }}>
+              Wolfe Co · {new Date().getFullYear()}
+            </div>
+          )}
+
+          {devMode && (<>
+          <div style={{
+            margin: '24px 0 10px',
+            fontSize: 9,
+            letterSpacing: '0.4em',
+            opacity: 0.5,
+            textTransform: 'uppercase',
+            color: '#CE703F',
+          }}>
+            — Dev Tools —
+          </div>
+
           <LogoBlock
             logo={logo}
             presets={LOGO_PRESETS}
@@ -130,10 +213,12 @@ export default function BackgroundEditor() {
             <div style={{ color: '#CE703F', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: 9, marginBottom: 8 }}>
               Notes
             </div>
-            Press <span style={{ color: '#CE703F' }}>B</span> to toggle. Files stay only for this session.
+            Press <span style={{ color: '#CE703F' }}>B</span> to toggle menu, <span style={{ color: '#CE703F' }}>D</span> for dev tools.
+            Mobile: long-press the BG button or shake the phone for dev mode.
             For prod, set <span style={{ color: '#CE703F' }}>VITE_BG_&lt;ID&gt;</span> env vars
             (e.g. <span style={{ color: '#CE703F' }}>VITE_BG_HERO=/hero.mp4</span>) and drop assets in <span style={{ color: '#CE703F' }}>/public</span>.
           </div>
+          </>)}
         </div>
       </aside>
     </>
@@ -353,6 +438,62 @@ function Preview({ entry }) {
   const style = { width: 64, height: 40, objectFit: 'cover', borderRadius: 3, background: '#000', flexShrink: 0 };
   if (entry.type === 'video') return <video src={entry.url} muted autoPlay loop playsInline style={style} />;
   return <img src={entry.url} alt="" style={style} />;
+}
+
+function NavBlock() {
+  // Click handlers wired up later — placeholders.
+  const noop = () => {};
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={noop}
+        style={{
+          width: '100%',
+          background: '#CE703F',
+          color: '#171618',
+          border: 'none',
+          padding: '14px 16px',
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 12,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          marginBottom: 14,
+        }}
+      >
+        Let's Work Together
+      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {[
+          { label: 'View Content' },
+          { label: 'View Builds' },
+          { label: 'View Brand' },
+        ].map((item) => (
+          <button
+            key={item.label}
+            type="button"
+            onClick={noop}
+            style={{
+              width: '100%',
+              background: 'transparent',
+              color: '#CFBFAA',
+              border: '1px solid rgba(207,191,170,0.18)',
+              padding: '11px 14px',
+              fontFamily: "'Space Mono', monospace",
+              fontSize: 11,
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function LogoBlock({ logo, presets = [], library, onUpload, onPick, onClear, onRemove, scale, setScale }) {

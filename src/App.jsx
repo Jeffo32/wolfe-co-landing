@@ -3,7 +3,7 @@ import { MediaProvider } from './media/MediaContext.jsx';
 import SectionMedia from './components/SectionMedia.jsx';
 import BackgroundEditor from './components/BackgroundEditor.jsx';
 import WolfeMark from './components/WolfeMark.jsx';
-import TopNav from './components/TopNav.jsx';
+import PageIndicators from './components/PageIndicators.jsx';
 import { useMedia } from './media/MediaContext.jsx';
 import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
 
@@ -991,59 +991,37 @@ function Landing() {
         /* fix word-spacing on the credo footer ("Two Decades Of Practice") */
         .wc-credo-foot { word-spacing: 0.4em; }
 
-        /* ---------- TOP NAV ---------- */
-        .wc-topbar {
+        /* ---------- PAGE INDICATORS ---------- */
+        .wc-pageind {
           position: fixed;
-          top: 0; left: 0; right: 0;
-          z-index: 100;
-          height: 56px;
+          top: 26px;
+          right: 22px;
+          z-index: 90;
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 24px;
-          pointer-events: none; /* let nested buttons receive clicks; bg passthrough */
+          flex-direction: column;
+          gap: 9px;
+          opacity: 0;
+          transform: translateX(8px);
+          transition: opacity 280ms ease, transform 280ms ease;
+          pointer-events: none;
         }
-        .wc-topbar > * { pointer-events: auto; }
-        .wc-topbar-cta {
+        .wc-pageind.is-visible {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        .wc-pageind-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 999px;
+          background: rgba(207, 191, 170, 0.32);
+          transition: background 220ms ease, transform 220ms ease;
+        }
+        .wc-pageind-dot.active {
           background: #CE703F;
-          color: #171618;
-          border: none;
-          padding: 10px 20px;
-          font-family: 'Space Mono', monospace;
-          font-size: calc(11px * var(--text-scale, 1));
-          letter-spacing: 0.28em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: background 0.18s ease, transform 0.18s ease;
-          white-space: nowrap;
+          transform: scale(1.4);
         }
-        .wc-topbar-cta:hover { background: #de8050; }
-        .wc-topbar-cta:active { transform: translate(1px, 1px); }
-        .wc-topbar-nav {
-          display: flex;
-          gap: 8px;
-        }
-        .wc-topbar-link {
-          background: rgba(23, 22, 24, 0.4);
-          border: 1px solid rgba(207, 191, 170, 0.16);
-          color: #CFBFAA;
-          padding: 8px 14px;
-          font-family: 'Space Mono', monospace;
-          font-size: calc(10px * var(--text-scale, 1));
-          letter-spacing: 0.28em;
-          text-transform: uppercase;
-          cursor: pointer;
-          backdrop-filter: blur(6px);
-          -webkit-backdrop-filter: blur(6px);
-          transition: border-color 0.18s ease, color 0.18s ease;
-          white-space: nowrap;
-        }
-        .wc-topbar-link:hover { border-color: rgba(206, 112, 63, 0.6); color: #fff; }
         @media (max-width: 768px) {
-          .wc-topbar { padding: 0 10px; height: 48px; gap: 6px; }
-          .wc-topbar-cta { padding: 7px 10px; font-size: calc(8px * var(--text-scale, 1)); letter-spacing: 0.18em; }
-          .wc-topbar-nav { gap: 4px; }
-          .wc-topbar-link { padding: 6px 7px; font-size: calc(7px * var(--text-scale, 1)); letter-spacing: 0.14em; }
+          .wc-pageind { top: 18px; right: 14px; gap: 7px; }
         }
 
         /* CTA highlight on "Ready" */
@@ -2359,7 +2337,7 @@ function Landing() {
       `}</style>
 
       <div className="wc-wrap" style={{ '--text-scale': textScale, '--hero-tag-y': `${tagY}px` }}>
-        <TopNav />
+        <PageIndicators />
         {/* DECK — mandatory snap on every section, including hero */}
         <div className="wc-deck">
           {/* 1. HERO */}
