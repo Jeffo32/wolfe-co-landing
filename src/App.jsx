@@ -3,7 +3,6 @@ import { MediaProvider } from './media/MediaContext.jsx';
 import SectionMedia from './components/SectionMedia.jsx';
 import BackgroundEditor from './components/BackgroundEditor.jsx';
 import WolfeMark from './components/WolfeMark.jsx';
-import PageIndicators from './components/PageIndicators.jsx';
 import { useMedia } from './media/MediaContext.jsx';
 import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
 
@@ -992,41 +991,7 @@ function Landing() {
         /* fix word-spacing on the credo footer ("Two Decades Of Practice") */
         .wc-credo-foot { word-spacing: 0.4em; }
 
-        /* ---------- PAGE INDICATORS ---------- */
-        /* Bottom-right column, above the floating BG button */
-        .wc-pageind {
-          position: fixed;
-          bottom: 78px;
-          right: 28px;
-          z-index: 90;
-          display: flex;
-          flex-direction: column;
-          gap: 9px;
-          opacity: 0;
-          transform: translateX(8px);
-          transition: opacity 280ms ease, transform 280ms ease;
-          pointer-events: none;
-        }
-        .wc-pageind.is-visible {
-          opacity: 1;
-          transform: translateX(0);
-        }
-        .wc-pageind-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 999px;
-          background: rgba(207, 191, 170, 0.32);
-          transition: background 220ms ease, transform 220ms ease;
-        }
-        .wc-pageind-dot.active {
-          background: #CE703F;
-          transform: scale(1.4);
-        }
-        @media (max-width: 768px) {
-          .wc-pageind { bottom: 72px; right: 22px; gap: 7px; }
-        }
-
-        /* CTA highlight on "Ready" */
+/* CTA highlight on "Ready" */
         .wc-cta-emphasis { color: #CE703F; }
 
         /* Cycling word — slot-style slide-up with a soft blur on entry/exit */
@@ -2339,7 +2304,6 @@ function Landing() {
       `}</style>
 
       <div className="wc-wrap" style={{ '--text-scale': textScale, '--hero-tag-y': `${tagY}px` }}>
-        <PageIndicators />
         {/* DECK — mandatory snap on every section, including hero */}
         <div className="wc-deck">
           {/* 1. HERO */}
