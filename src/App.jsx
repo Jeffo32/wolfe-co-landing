@@ -562,11 +562,18 @@ function Landing() {
 
   useScrollTilt(heroMarkRef);
 
-  // Mobile snap: custom rAF tween (more reliable than native smooth-scroll
-  // on iOS) fired after the user's scroll/flick has settled.
+  // Mobile snap. iOS Safari can be unreliable about firing the trailing scroll
+  // event after momentum ends, and address-bar collapse changes the viewport
+  // height mid-scroll, so:
+  //   - we trigger a snap from BOTH scroll-end debounce AND touchend
+  //   - we find the target by closest section rect, not by scrollY / vh math
+  //   - we tween via rAF (no native smooth-scroll dependency)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!window.matchMedia('(pointer: coarse)').matches) return;
+    const isMobile = () =>
+      window.innerWidth <= 768 ||
+      window.matchMedia('(pointer: coarse)').matches;
+    if (!isMobile()) return;
 
     let endTimer = 0;
     let tweenRaf = 0;
@@ -580,7 +587,7 @@ function Landing() {
       tweening = false;
     };
 
-    const tweenTo = (targetY, duration = 520) => {
+    const tweenTo = (targetY, duration = 500) => {
       cancelTween();
       const startY = window.scrollY;
       const distance = targetY - startY;
@@ -594,36 +601,53 @@ function Landing() {
         if (t < 1) {
           tweenRaf = requestAnimationFrame(step);
         } else {
-          tweenRaf = 0;
-          tweening = false;
+          cancelTween();
         }
       };
       tweenRaf = requestAnimationFrame(step);
     };
 
-    const onTouchStart = () => {
-      // user grabbed the page — abort any in-flight tween + pending snap
-      clearTimeout(endTimer);
-      cancelTween();
+    const trySnap = () => {
+      if (tweening) return;
+      // Pick the section whose top edge is closest to the viewport top.
+      // Robust against iOS address-bar height changes.
+      const sections = document.querySelectorAll('section.wc-section');
+      let bestTop = Infinity;
+      let bestY = 0;
+      sections.forEach((s) => {
+        const r = s.getBoundingClientRect();
+        if (Math.abs(r.top) < Math.abs(bestTop)) {
+          bestTop = r.top;
+          bestY = window.scrollY + r.top;
+        }
+      });
+      if (Math.abs(bestTop) > 4) {
+        tweenTo(bestY);
+      }
     };
+
     const onScroll = () => {
       if (tweening) return;
       clearTimeout(endTimer);
-      endTimer = setTimeout(() => {
-        const vh = window.innerHeight || 1;
-        const idx = Math.round(window.scrollY / vh);
-        const targetY = idx * vh;
-        if (Math.abs(window.scrollY - targetY) > 4) {
-          tweenTo(targetY);
-        }
-      }, 130);
+      endTimer = setTimeout(trySnap, 130);
+    };
+    const onTouchStart = () => {
+      clearTimeout(endTimer);
+      cancelTween();
+    };
+    const onTouchEnd = () => {
+      // Backup trigger in case the trailing scroll event doesn't arrive.
+      clearTimeout(endTimer);
+      endTimer = setTimeout(trySnap, 280);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchend', onTouchEnd);
       clearTimeout(endTimer);
       cancelTween();
     };
@@ -674,9 +698,9 @@ function Landing() {
           scroll-snap-type: y mandatory;
           overscroll-behavior-y: none;
         }
-        @media (hover: none) and (pointer: coarse) {
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
           /* Mobile: disable native CSS snap. JS in <Landing> handles snapping
-             via debounced smooth scrollTo — no "ease then jump" finish. */
+             via rAF tween — no "ease then jump" finish. */
           html { scroll-snap-type: none; }
         }
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -705,7 +729,7 @@ function Landing() {
           perspective: 1400px;
           perspective-origin: 50% 60%;
         }
-        @media (hover: none) and (pointer: coarse) {
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
           .wc-section { scroll-snap-stop: normal; }
         }
 
