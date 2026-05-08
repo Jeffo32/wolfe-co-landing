@@ -6,6 +6,42 @@ import WolfeMark from './components/WolfeMark.jsx';
 import { useMedia } from './media/MediaContext.jsx';
 import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
 
+// Cycles through a list of words. The previous word slides up and fades while
+// the next slides up from below. Container size is stable (grid stacking).
+function CyclingWord({ words, intervalMs = 2400 }) {
+  const [index, setIndex] = useState(0);
+  const prevRef = useRef(0);
+
+  useEffect(() => {
+    if (!words || words.length < 2) return;
+    const id = setInterval(() => {
+      setIndex((i) => {
+        prevRef.current = i;
+        return (i + 1) % words.length;
+      });
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [words, intervalMs]);
+
+  return (
+    <span className="wc-cycle" aria-live="polite">
+      {/* invisible sizer keeps width stable to widest word */}
+      <span className="wc-cycle-sizer" aria-hidden>
+        {words.reduce((a, b) => (a.length >= b.length ? a : b), '')}
+      </span>
+      {words.map((w, i) => {
+        const state =
+          i === index ? 'active' : i === prevRef.current ? 'exiting' : 'hidden';
+        return (
+          <span key={i} className={`wc-cycle-word ${state}`} aria-hidden={i !== index}>
+            {w}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 function Typewriter({
   phrases,
   typeMs = 70,
@@ -529,18 +565,10 @@ const StatementInner = React.forwardRef(function StatementInner(_, ref) {
       </div>
 
       <h1 className="wc-statement-line">
-        <span className="wc-statement-num">20</span> Years Of Knowing What &lsquo;Good&rsquo; Looks Like<span className="wc-period">.</span>
+        <span className="wc-statement-num">20</span> Years Of Knowing What &lsquo;Good&rsquo;{' '}
+        <CyclingWord words={['Looks', 'Sounds', 'Feels']} />
+        {' '}Like<span className="wc-period">.</span>
       </h1>
-
-      <div className="wc-credo">
-        <span className="wc-credo-line">We Know Good When We See It,</span>
-        <span className="wc-credo-line">Hear It, And Feel It<span className="wc-period">.</span></span>
-        <span className="wc-credo-foot">
-          <span className="wc-ochre-dot" />
-          Two Decades Of Practice
-          <span className="wc-ochre-dot" />
-        </span>
-      </div>
     </div>
   );
 });
@@ -945,6 +973,43 @@ function Landing() {
 
         /* CTA highlight on "Ready" */
         .wc-cta-emphasis { color: #CE703F; }
+
+        /* Cycling word — slot-style slide-up with a soft blur on entry/exit */
+        .wc-cycle {
+          display: inline-grid;
+          vertical-align: baseline;
+          overflow: hidden;
+          line-height: inherit;
+          color: #CE703F;
+        }
+        .wc-cycle-sizer {
+          grid-area: 1 / 1;
+          visibility: hidden;
+          white-space: nowrap;
+        }
+        .wc-cycle-word {
+          grid-area: 1 / 1;
+          white-space: nowrap;
+          transform: translateY(100%);
+          opacity: 0;
+          filter: blur(8px);
+          transition:
+            transform 620ms cubic-bezier(0.22, 0.61, 0.36, 1),
+            opacity 380ms ease,
+            filter 380ms ease;
+          will-change: transform, opacity, filter;
+          pointer-events: none;
+        }
+        .wc-cycle-word.active {
+          transform: translateY(0);
+          opacity: 1;
+          filter: blur(0);
+        }
+        .wc-cycle-word.exiting {
+          transform: translateY(-100%);
+          opacity: 0;
+          filter: blur(8px);
+        }
 
         /* Typewriter on CTA title */
         .wc-cta-title {
