@@ -74,6 +74,9 @@ export default function BackgroundEditor() {
           cursor: 'pointer',
           boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
           touchAction: 'manipulation',
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
+          WebkitTouchCallout: 'none',
         }}
         aria-label="Toggle menu"
         title="Menu (B). Long-press for dev tools."
