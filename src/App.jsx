@@ -1794,6 +1794,18 @@ function Landing() {
           color: #CFBFAA;
           opacity: 0.4;
           text-transform: uppercase;
+          white-space: nowrap;
+          flex-wrap: nowrap;
+        }
+        .wc-footer-mark > span { white-space: nowrap; }
+        @media (max-width: 768px) {
+          .wc-footer-mark {
+            font-size: calc(7px * var(--text-scale, 1));
+            letter-spacing: 0.28em;
+            gap: 8px;
+            bottom: 24px;
+            width: max-content;
+          }
         }
 
         .wc-corner, .wc-corner-r {
