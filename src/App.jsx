@@ -562,6 +562,50 @@ function Landing() {
 
   useScrollTilt(heroMarkRef);
 
+  // Mobile: programmatic smooth-snap on scroll-end (debounced).
+  // Native CSS mandatory snap on iOS produces a jarring "ease then jump"
+  // finish. This replaces it with a smooth scrollTo to the nearest section.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!window.matchMedia('(pointer: coarse)').matches) return;
+
+    let endTimer = 0;
+    let programmatic = false;
+    let unlockTimer = 0;
+
+    const unlock = () => { programmatic = false; };
+    const onTouchStart = () => {
+      // user took control again — cancel any pending snap and clear flag
+      clearTimeout(endTimer);
+      clearTimeout(unlockTimer);
+      programmatic = false;
+    };
+    const onScroll = () => {
+      if (programmatic) return;
+      clearTimeout(endTimer);
+      endTimer = setTimeout(() => {
+        const vh = window.innerHeight || 1;
+        const idx = Math.round(window.scrollY / vh);
+        const targetY = idx * vh;
+        if (Math.abs(window.scrollY - targetY) > 4) {
+          programmatic = true;
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+          clearTimeout(unlockTimer);
+          unlockTimer = setTimeout(unlock, 850);
+        }
+      }, 140);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('touchstart', onTouchStart);
+      clearTimeout(endTimer);
+      clearTimeout(unlockTimer);
+    };
+  }, []);
+
   useScrollEnter(statementRef);
   useScrollTilt(statementRef, { maxTilt: 18, maxLift: -10 });
 
@@ -607,10 +651,11 @@ function Landing() {
           scroll-snap-type: y mandatory;
           overscroll-behavior-y: none;
         }
-        /* Mobile / touch — keep mandatory snap so the browser auto-settles
-           onto the nearest section when momentum ends. scroll-snap-stop is
-           overridden to 'normal' below so fast flicks can still cross several
-           sections at once. */
+        @media (hover: none) and (pointer: coarse) {
+          /* Mobile: disable native CSS snap. JS in <Landing> handles snapping
+             via debounced smooth scrollTo — no "ease then jump" finish. */
+          html { scroll-snap-type: none; }
+        }
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
         /* ROOT WRAP — NO scroll-snap (so hero scrub works).
@@ -1891,26 +1936,51 @@ function Landing() {
 
         /* ---------- MOBILE ---------- */
         @media (max-width: 768px) {
-          .wc-statement-line { font-size: calc(36px * var(--text-scale, 1)); }
-          .wc-credo-line { font-size: calc(14px * var(--text-scale, 1)); letter-spacing: 0.1em; }
-          .wc-cta-title, .wc-avail-title { font-size: calc(32px * var(--text-scale, 1)); }
-          .wc-metric-num { font-size: calc(44px * var(--text-scale, 1)); }
-          .wc-cap-title { font-size: calc(22px * var(--text-scale, 1)); }
-          .wc-proof-inner { gap: 48px; flex-direction: column; align-items: center; }
+          .wc-statement-line { font-size: calc(28px * var(--text-scale, 1)); line-height: 1.05; padding: 0 6px; }
+          .wc-credo-line { font-size: calc(12px * var(--text-scale, 1)); letter-spacing: 0.08em; }
+          .wc-cta-title { font-size: calc(28px * var(--text-scale, 1)); padding: 0 8px; min-height: 4em; }
+          .wc-avail-title { font-size: calc(32px * var(--text-scale, 1)); }
+          .wc-metric-num { font-size: calc(40px * var(--text-scale, 1)); }
+          .wc-cap-title { font-size: calc(20px * var(--text-scale, 1)); }
+          .wc-proof-inner { gap: 28px; flex-direction: column; align-items: center; }
 
           .wc-corner, .wc-corner-r { font-size: calc(9px * var(--text-scale, 1)); top: 18px; }
           .wc-corner { left: 18px; }
           .wc-corner-r { right: 18px; }
 
-          .wc-cap-label { font-size: calc(10px * var(--text-scale, 1)); }
-          .wc-cap-label.tl, .wc-cap-label.tr { top: 14%; }
-          .wc-cap-label.bl, .wc-cap-label.br { bottom: 14%; }
+          .wc-cap-label { font-size: calc(9px * var(--text-scale, 1)); letter-spacing: 0.22em; }
+          .wc-cap-label.tl, .wc-cap-label.tr { top: 10%; }
+          .wc-cap-label.bl, .wc-cap-label.br { bottom: 10%; }
+          .wc-cap-label .wc-num { font-size: calc(8px * var(--text-scale, 1)); letter-spacing: 0.22em; }
 
           .wc-div-wrap, .wc-offers-wrap { padding: 56px 18px 28px; }
           .wc-div-grid, .wc-offers-grid { grid-template-columns: 1fr; }
           .wc-div-card { min-height: auto; padding: 28px 20px; }
-          .wc-offer-card { min-height: auto; padding: 28px 20px; gap: 16px; }
           .wc-div-head-title, .wc-offers-head-title { font-size: calc(26px * var(--text-scale, 1)); }
+
+          /* offers: tighten cards so all three fit on a phone viewport */
+          .wc-offers-wrap { padding: 36px 16px 18px; }
+          .wc-offers-inner { gap: 22px; }
+          .wc-offers-grid { gap: 8px; }
+          .wc-offer-card {
+            min-height: auto;
+            padding: 16px 16px;
+            gap: 8px;
+          }
+          .wc-offer-num { margin-bottom: 0; }
+          .wc-offer-name { font-size: calc(20px * var(--text-scale, 1)); }
+          .wc-offer-division { font-size: calc(9px * var(--text-scale, 1)); }
+          .wc-offer-desc {
+            font-size: calc(10px * var(--text-scale, 1));
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+          .wc-offer-incl { display: none; } /* free up vertical space */
+          .wc-offer-price { padding-top: 10px; }
+          .wc-offer-price-num { font-size: calc(18px * var(--text-scale, 1)); }
 
           .wc-dx { padding: 36px 24px 24px; gap: 14px; }
           .wc-dx-frame { top: 14px; right: 14px; bottom: 14px; left: 14px; }
