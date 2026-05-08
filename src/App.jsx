@@ -51,10 +51,10 @@ function Typewriter({
   );
 }
 
-function easeOutQuart(t) { return 1 - (1 - t) ** 4; }
+function easeOutQuint(t) { return 1 - (1 - t) ** 5; }
 function Counter({ target, progress, suffix = '', decimals = 0 }) {
   const t = Math.max(0, Math.min(1, progress));
-  return (target * easeOutQuart(t)).toFixed(decimals) + suffix;
+  return (target * easeOutQuint(t)).toFixed(decimals) + suffix;
 }
 
 // ---------- DIVISIONS HUB (concentric rings + sparkles) ----------
@@ -440,12 +440,12 @@ const ProofInner = React.forwardRef(function ProofInner(_, ref) {
     setDisplayP((d) => {
       const t = stateRef.current.target;
       const delta = t - d;
-      if (Math.abs(delta) < 0.0005) {
+      if (Math.abs(delta) < 0.0002) {
         stateRef.current.raf = 0;
         return t;
       }
       stateRef.current.raf = requestAnimationFrame(animate);
-      return d + delta * 0.06;
+      return d + delta * 0.035;
     });
   }, []);
 
@@ -607,10 +607,10 @@ function Landing() {
           scroll-snap-type: y mandatory;
           overscroll-behavior-y: none;
         }
-        @media (hover: none) and (pointer: coarse) {
-          /* Mobile / touch — let native momentum handle motion, snap softly. */
-          html { scroll-snap-type: y proximity; }
-        }
+        /* Mobile / touch — keep mandatory snap so the browser auto-settles
+           onto the nearest section when momentum ends. scroll-snap-stop is
+           overridden to 'normal' below so fast flicks can still cross several
+           sections at once. */
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
         /* ROOT WRAP — NO scroll-snap (so hero scrub works).
