@@ -579,6 +579,17 @@ function Landing() {
     const prevSnap = document.documentElement.style.scrollSnapType;
     document.documentElement.style.scrollSnapType = 'none';
 
+    // Pin section height to a stable JS-captured value so iOS address-bar
+    // show/hide can't change section heights mid-scroll (which would make
+    // the tween's pre-computed targetY land in the wrong place).
+    const setSectionH = () => {
+      document.documentElement.style.setProperty('--app-vh', window.innerHeight + 'px');
+    };
+    setSectionH();
+    // Only update on orientation change — not transient address-bar resizes.
+    const onOrientation = () => setTimeout(setSectionH, 200);
+    window.addEventListener('orientationchange', onOrientation);
+
     let startY = 0;
     let startScrollY = 0;
     let touching = false;
@@ -587,7 +598,8 @@ function Landing() {
     let tweenRaf = 0;
     let tweening = false;
 
-    const easeOutQuint = (t) => 1 - (1 - t) ** 5;
+    // Smoother than easeOutQuint — exponential decay, no visible "rest" tail.
+    const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
     const cancelTween = () => {
       if (tweenRaf) cancelAnimationFrame(tweenRaf);
@@ -605,7 +617,7 @@ function Landing() {
       const step = (now) => {
         if (!tweening) return;
         const t = Math.min(1, (now - t0) / duration);
-        window.scrollTo(0, sY + distance * easeOutQuint(t));
+        window.scrollTo(0, sY + distance * easeOutExpo(t));
         if (t < 1) tweenRaf = requestAnimationFrame(step);
         else { tweening = false; tweenRaf = 0; }
       };
@@ -702,6 +714,8 @@ function Landing() {
 
     return () => {
       document.documentElement.style.scrollSnapType = prevSnap;
+      document.documentElement.style.removeProperty('--app-vh');
+      window.removeEventListener('orientationchange', onOrientation);
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onTouchEnd);
@@ -772,7 +786,7 @@ function Landing() {
 
         .wc-section {
           width: 100vw;
-          height: 100dvh;
+          height: var(--app-vh, 100dvh);
           scroll-snap-align: start;
           scroll-snap-stop: always;
           position: relative;
