@@ -562,96 +562,6 @@ function Landing() {
 
   useScrollTilt(heroMarkRef);
 
-  // Mobile snap. iOS Safari can be unreliable about firing the trailing scroll
-  // event after momentum ends, and address-bar collapse changes the viewport
-  // height mid-scroll, so:
-  //   - we trigger a snap from BOTH scroll-end debounce AND touchend
-  //   - we find the target by closest section rect, not by scrollY / vh math
-  //   - we tween via rAF (no native smooth-scroll dependency)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const isMobile = () =>
-      window.innerWidth <= 768 ||
-      window.matchMedia('(pointer: coarse)').matches;
-    if (!isMobile()) return;
-
-    let endTimer = 0;
-    let tweenRaf = 0;
-    let tweening = false;
-
-    const easeOutCubic = (t) => 1 - (1 - t) ** 3;
-
-    const cancelTween = () => {
-      if (tweenRaf) cancelAnimationFrame(tweenRaf);
-      tweenRaf = 0;
-      tweening = false;
-    };
-
-    const tweenTo = (targetY, duration = 500) => {
-      cancelTween();
-      const startY = window.scrollY;
-      const distance = targetY - startY;
-      if (Math.abs(distance) < 2) return;
-      const startTime = performance.now();
-      tweening = true;
-      const step = (now) => {
-        if (!tweening) return;
-        const t = Math.min(1, (now - startTime) / duration);
-        window.scrollTo(0, startY + distance * easeOutCubic(t));
-        if (t < 1) {
-          tweenRaf = requestAnimationFrame(step);
-        } else {
-          cancelTween();
-        }
-      };
-      tweenRaf = requestAnimationFrame(step);
-    };
-
-    const trySnap = () => {
-      if (tweening) return;
-      // Pick the section whose top edge is closest to the viewport top.
-      // Robust against iOS address-bar height changes.
-      const sections = document.querySelectorAll('section.wc-section');
-      let bestTop = Infinity;
-      let bestY = 0;
-      sections.forEach((s) => {
-        const r = s.getBoundingClientRect();
-        if (Math.abs(r.top) < Math.abs(bestTop)) {
-          bestTop = r.top;
-          bestY = window.scrollY + r.top;
-        }
-      });
-      if (Math.abs(bestTop) > 4) {
-        tweenTo(bestY);
-      }
-    };
-
-    const onScroll = () => {
-      if (tweening) return;
-      clearTimeout(endTimer);
-      endTimer = setTimeout(trySnap, 130);
-    };
-    const onTouchStart = () => {
-      clearTimeout(endTimer);
-      cancelTween();
-    };
-    const onTouchEnd = () => {
-      // Backup trigger in case the trailing scroll event doesn't arrive.
-      clearTimeout(endTimer);
-      endTimer = setTimeout(trySnap, 280);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchend', onTouchEnd, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchend', onTouchEnd);
-      clearTimeout(endTimer);
-      cancelTween();
-    };
-  }, []);
 
   useScrollEnter(statementRef);
   useScrollTilt(statementRef, { maxTilt: 18, maxLift: -10 });
@@ -698,11 +608,8 @@ function Landing() {
           scroll-snap-type: y mandatory;
           overscroll-behavior-y: none;
         }
-        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-          /* Mobile: disable native CSS snap. JS in <Landing> handles snapping
-             via rAF tween — no "ease then jump" finish. */
-          html { scroll-snap-type: none; }
-        }
+        /* Mobile uses the same mandatory snap as desktop — one section per
+           gesture. No JS override; native browser snap is the most reliable. */
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
         /* ROOT WRAP — NO scroll-snap (so hero scrub works).
@@ -729,9 +636,8 @@ function Landing() {
           perspective: 1400px;
           perspective-origin: 50% 60%;
         }
-        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-          .wc-section { scroll-snap-stop: normal; }
-        }
+        /* scroll-snap-stop: always applies on mobile too — locks scroll to
+           one section per flick, matching desktop. */
 
         .wc-ochre-dot {
           display: inline-block;
