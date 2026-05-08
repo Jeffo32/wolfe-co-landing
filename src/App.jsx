@@ -562,6 +562,131 @@ function Landing() {
 
   useScrollTilt(heroMarkRef);
 
+  // Mobile: take over scrolling. Native iOS momentum + CSS mandatory snap
+  // produce an unavoidable "ease then jump" because the OS-level momentum
+  // continues past the snap point. Here we kill native scrolling, follow the
+  // finger 1:1 during touchmove, then tween smoothly to the nearest section
+  // on touchend. Touches on the editor panel / buttons / inputs are passed
+  // through unchanged.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isMobile =
+      window.innerWidth <= 768 ||
+      window.matchMedia('(pointer: coarse)').matches;
+    if (!isMobile) return;
+
+    // Disable CSS snap — JS owns it now.
+    const prevSnap = document.documentElement.style.scrollSnapType;
+    document.documentElement.style.scrollSnapType = 'none';
+
+    let startY = 0;
+    let startScrollY = 0;
+    let touching = false;
+    let interacting = false;
+    let tweenRaf = 0;
+    let tweening = false;
+
+    const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+
+    const cancelTween = () => {
+      if (tweenRaf) cancelAnimationFrame(tweenRaf);
+      tweenRaf = 0;
+      tweening = false;
+    };
+
+    const tweenTo = (targetY, duration = 480) => {
+      cancelTween();
+      const sY = window.scrollY;
+      const distance = targetY - sY;
+      if (Math.abs(distance) < 1) return;
+      const t0 = performance.now();
+      tweening = true;
+      const step = (now) => {
+        if (!tweening) return;
+        const t = Math.min(1, (now - t0) / duration);
+        window.scrollTo(0, sY + distance * easeOutCubic(t));
+        if (t < 1) tweenRaf = requestAnimationFrame(step);
+        else { tweening = false; tweenRaf = 0; }
+      };
+      tweenRaf = requestAnimationFrame(step);
+    };
+
+    const getSections = () =>
+      Array.from(document.querySelectorAll('section.wc-section'));
+
+    const currentIndex = () => {
+      const list = getSections();
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      list.forEach((s, i) => {
+        const d = Math.abs(s.getBoundingClientRect().top);
+        if (d < bestDist) { bestDist = d; bestIdx = i; }
+      });
+      return bestIdx;
+    };
+
+    const isInteractive = (el) =>
+      !!el && !!el.closest('aside, button, input, label, textarea, select, [contenteditable="true"]');
+
+    const onTouchStart = (e) => {
+      cancelTween();
+      if (isInteractive(e.target)) {
+        interacting = true;
+        touching = false;
+        return;
+      }
+      interacting = false;
+      startY = e.touches[0].clientY;
+      startScrollY = window.scrollY;
+      touching = true;
+    };
+
+    const onTouchMove = (e) => {
+      if (interacting || !touching) return;
+      if (e.cancelable) e.preventDefault();
+      const dy = startY - e.touches[0].clientY;
+      window.scrollTo(0, startScrollY + dy);
+    };
+
+    const onTouchEnd = (e) => {
+      if (interacting) {
+        interacting = false;
+        return;
+      }
+      if (!touching) return;
+      touching = false;
+
+      const endY = e.changedTouches[0].clientY;
+      const dy = startY - endY;
+      const vh = window.innerHeight;
+      const threshold = vh * 0.12;
+
+      const list = getSections();
+      let idx = currentIndex();
+      if (dy > threshold) idx = Math.min(list.length - 1, idx + 1);
+      else if (dy < -threshold) idx = Math.max(0, idx - 1);
+
+      const target = list[idx];
+      if (target) {
+        const targetY = window.scrollY + target.getBoundingClientRect().top;
+        tweenTo(targetY);
+      }
+    };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      document.documentElement.style.scrollSnapType = prevSnap;
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+      cancelTween();
+    };
+  }, []);
 
   useScrollEnter(statementRef);
   useScrollTilt(statementRef, { maxTilt: 18, maxLift: -10 });
