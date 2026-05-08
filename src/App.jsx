@@ -562,38 +562,61 @@ function Landing() {
 
   useScrollTilt(heroMarkRef);
 
-  // Mobile: programmatic smooth-snap on scroll-end (debounced).
-  // Native CSS mandatory snap on iOS produces a jarring "ease then jump"
-  // finish. This replaces it with a smooth scrollTo to the nearest section.
+  // Mobile snap: custom rAF tween (more reliable than native smooth-scroll
+  // on iOS) fired after the user's scroll/flick has settled.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!window.matchMedia('(pointer: coarse)').matches) return;
 
     let endTimer = 0;
-    let programmatic = false;
-    let unlockTimer = 0;
+    let tweenRaf = 0;
+    let tweening = false;
 
-    const unlock = () => { programmatic = false; };
+    const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+
+    const cancelTween = () => {
+      if (tweenRaf) cancelAnimationFrame(tweenRaf);
+      tweenRaf = 0;
+      tweening = false;
+    };
+
+    const tweenTo = (targetY, duration = 520) => {
+      cancelTween();
+      const startY = window.scrollY;
+      const distance = targetY - startY;
+      if (Math.abs(distance) < 2) return;
+      const startTime = performance.now();
+      tweening = true;
+      const step = (now) => {
+        if (!tweening) return;
+        const t = Math.min(1, (now - startTime) / duration);
+        window.scrollTo(0, startY + distance * easeOutCubic(t));
+        if (t < 1) {
+          tweenRaf = requestAnimationFrame(step);
+        } else {
+          tweenRaf = 0;
+          tweening = false;
+        }
+      };
+      tweenRaf = requestAnimationFrame(step);
+    };
+
     const onTouchStart = () => {
-      // user took control again — cancel any pending snap and clear flag
+      // user grabbed the page — abort any in-flight tween + pending snap
       clearTimeout(endTimer);
-      clearTimeout(unlockTimer);
-      programmatic = false;
+      cancelTween();
     };
     const onScroll = () => {
-      if (programmatic) return;
+      if (tweening) return;
       clearTimeout(endTimer);
       endTimer = setTimeout(() => {
         const vh = window.innerHeight || 1;
         const idx = Math.round(window.scrollY / vh);
         const targetY = idx * vh;
         if (Math.abs(window.scrollY - targetY) > 4) {
-          programmatic = true;
-          window.scrollTo({ top: targetY, behavior: 'smooth' });
-          clearTimeout(unlockTimer);
-          unlockTimer = setTimeout(unlock, 850);
+          tweenTo(targetY);
         }
-      }, 140);
+      }, 130);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -602,7 +625,7 @@ function Landing() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('touchstart', onTouchStart);
       clearTimeout(endTimer);
-      clearTimeout(unlockTimer);
+      cancelTween();
     };
   }, []);
 
@@ -1958,29 +1981,48 @@ function Landing() {
           .wc-div-card { min-height: auto; padding: 28px 20px; }
           .wc-div-head-title, .wc-offers-head-title { font-size: calc(26px * var(--text-scale, 1)); }
 
-          /* offers: tighten cards so all three fit on a phone viewport */
-          .wc-offers-wrap { padding: 36px 16px 18px; }
-          .wc-offers-inner { gap: 22px; }
-          .wc-offers-grid { gap: 8px; }
+          /* offers: stripped-down cards — num • / name / from-price.
+             desc, division, inclusions all hidden so all three fit. */
+          .wc-offers-wrap { padding: 28px 14px 14px; }
+          .wc-offers-inner { gap: 16px; }
+          .wc-offers-head-title { font-size: calc(22px * var(--text-scale, 1)); }
+          .wc-offers-head-note { font-size: calc(8px * var(--text-scale, 1)); letter-spacing: 0.25em; }
+          .wc-offers-grid { gap: 6px; }
           .wc-offer-card {
             min-height: auto;
-            padding: 16px 16px;
-            gap: 8px;
+            padding: 12px 14px;
+            gap: 4px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-areas:
+              "num     num"
+              "name    price"
+              "name    gst";
+            align-items: center;
           }
-          .wc-offer-num { margin-bottom: 0; }
-          .wc-offer-name { font-size: calc(20px * var(--text-scale, 1)); }
-          .wc-offer-division { font-size: calc(9px * var(--text-scale, 1)); }
-          .wc-offer-desc {
-            font-size: calc(10px * var(--text-scale, 1));
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+          .wc-offer-num { grid-area: num; margin: 0; font-size: calc(8px * var(--text-scale, 1)); }
+          .wc-offer-name {
+            grid-area: name;
+            font-size: calc(18px * var(--text-scale, 1));
+            letter-spacing: 0.04em;
           }
-          .wc-offer-incl { display: none; } /* free up vertical space */
-          .wc-offer-price { padding-top: 10px; }
-          .wc-offer-price-num { font-size: calc(18px * var(--text-scale, 1)); }
+          .wc-offer-division,
+          .wc-offer-desc,
+          .wc-offer-incl {
+            display: none;
+          }
+          .wc-offer-price {
+            grid-area: price / price / gst / gst;
+            border-top: none;
+            padding-top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+          }
+          .wc-offer-price-from { display: none; }
+          .wc-offer-price-num { font-size: calc(16px * var(--text-scale, 1)); }
+          .wc-offer-price-gst { margin-left: 0; font-size: calc(8px * var(--text-scale, 1)); }
 
           .wc-dx { padding: 36px 24px 24px; gap: 14px; }
           .wc-dx-frame { top: 14px; right: 14px; bottom: 14px; left: 14px; }

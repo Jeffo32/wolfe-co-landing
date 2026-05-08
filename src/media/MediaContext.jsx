@@ -62,8 +62,11 @@ export function MediaProvider({ children }) {
   const [logo, setLogoState] = useState(buildInitialLogo);
   const [logoLibrary, setLogoLibrary] = useState([]); // user-uploaded options
   const [logoScale, setLogoScale] = useState(buildInitialScale);
-  const [textScale, setTextScale] = useState(1.4);
-  const [tagY, setTagY] = useState(124);
+  // Mobile: keep text scale 1.0 and no tagline lift — desktop values would
+  // overflow in a phone viewport.
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const [textScale, setTextScale] = useState(isMobile ? 1.0 : 1.4);
+  const [tagY, setTagY] = useState(isMobile ? 0 : 124);
   const [mediaOffsets, setMediaOffsets] = useState({}); // sectionId -> 0..100 (object-position Y %)
 
   const setMediaOffset = useCallback((id, value) => {
