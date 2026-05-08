@@ -6,6 +6,51 @@ import WolfeMark from './components/WolfeMark.jsx';
 import { useMedia } from './media/MediaContext.jsx';
 import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
 
+function Typewriter({
+  phrases,
+  typeMs = 70,
+  deleteMs = 35,
+  holdMs = 1600,
+  betweenMs = 280,
+}) {
+  const [index, setIndex] = useState(0);
+  const [text, setText] = useState('');
+  const [phase, setPhase] = useState('typing'); // 'typing' | 'holding' | 'deleting' | 'between'
+
+  useEffect(() => {
+    const phrase = phrases[index] || '';
+    let timer;
+    if (phase === 'typing') {
+      if (text.length < phrase.length) {
+        timer = setTimeout(() => setText(phrase.slice(0, text.length + 1)), typeMs);
+      } else {
+        timer = setTimeout(() => setPhase('holding'), 0);
+      }
+    } else if (phase === 'holding') {
+      timer = setTimeout(() => setPhase('deleting'), holdMs);
+    } else if (phase === 'deleting') {
+      if (text.length > 0) {
+        timer = setTimeout(() => setText(phrase.slice(0, text.length - 1)), deleteMs);
+      } else {
+        timer = setTimeout(() => setPhase('between'), 0);
+      }
+    } else if (phase === 'between') {
+      timer = setTimeout(() => {
+        setIndex((i) => (i + 1) % phrases.length);
+        setPhase('typing');
+      }, betweenMs);
+    }
+    return () => clearTimeout(timer);
+  }, [text, phase, index, phrases, typeMs, deleteMs, holdMs, betweenMs]);
+
+  return (
+    <span className="wc-typewriter">
+      {text}
+      <span className="wc-cursor" aria-hidden />
+    </span>
+  );
+}
+
 function easeOutQuart(t) { return 1 - (1 - t) ** 4; }
 function Counter({ target, progress, suffix = '', decimals = 0 }) {
   const t = Math.max(0, Math.min(1, progress));
@@ -452,7 +497,13 @@ const CTAInner = React.forwardRef(function CTAInner(_, ref) {
           07 — Begin
         </span>
         <h2 className="wc-cta-title">
-          <span className="wc-cta-emphasis">Ready</span> To Build Authority<span className="wc-period">?</span>
+          <span className="wc-cta-emphasis">Ready</span>{' '}
+          <Typewriter phrases={[
+            'to upgrade your business',
+            'to stand out',
+            'to get more customers',
+          ]} />
+          <span className="wc-period">?</span>
         </h2>
         <button className="wc-btn" onClick={() => {}}>
           Lets work together
@@ -708,6 +759,26 @@ function Landing() {
 
         /* CTA highlight on "Ready" */
         .wc-cta-emphasis { color: #CE703F; }
+
+        /* Typewriter on CTA title */
+        .wc-cta-title {
+          min-height: calc(2.2em);
+        }
+        .wc-typewriter {
+          display: inline;
+        }
+        .wc-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 0.85em;
+          vertical-align: -0.05em;
+          background: #CFBFAA;
+          margin-left: 4px;
+          animation: wcCursorBlink 1s steps(2, jump-none) infinite;
+        }
+        @keyframes wcCursorBlink {
+          50% { opacity: 0; }
+        }
 
         /* ---------- AVAILABILITY (new layout) ---------- */
         .wc-av2 {
@@ -1844,15 +1915,6 @@ function Landing() {
       `}</style>
 
       <div className="wc-wrap" style={{ '--text-scale': textScale, '--hero-tag-y': `${tagY}px` }}>
-        <div className="wc-corner">
-          <span className="wc-ochre-dot" />
-          <span>Wolfe Co</span>
-        </div>
-        <div className="wc-corner-r">
-          <span>VIC / AU</span>
-          <span className="wc-ochre-dot" />
-        </div>
-
         {/* DECK — mandatory snap on every section, including hero */}
         <div className="wc-deck">
           {/* 1. HERO */}
