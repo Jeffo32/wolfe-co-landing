@@ -214,7 +214,7 @@ export default function BackgroundEditor() {
               Notes
             </div>
             Press <span style={{ color: '#CE703F' }}>B</span> to toggle menu, <span style={{ color: '#CE703F' }}>D</span> for dev tools.
-            Mobile: long-press the BG button or shake the phone for dev mode.
+            Mobile: long-press the BG button to enter dev mode.
             For prod, set <span style={{ color: '#CE703F' }}>VITE_BG_&lt;ID&gt;</span> env vars
             (e.g. <span style={{ color: '#CE703F' }}>VITE_BG_HERO=/hero.mp4</span>) and drop assets in <span style={{ color: '#CE703F' }}>/public</span>.
           </div>

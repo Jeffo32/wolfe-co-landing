@@ -459,7 +459,8 @@ const AvailabilityInner = React.forwardRef(function AvailabilityInner(_, ref) {
       </div>
 
       <p className="wc-av2-body">
-        Two client slots at my current rates before prices go up.<br />
+        Two client slots at my current rates before{' '}
+        <span style={{ whiteSpace: 'nowrap' }}>prices go up</span>.<br />
         Lock in now, keep your rate permanently.
       </p>
 
@@ -992,10 +993,11 @@ function Landing() {
         .wc-credo-foot { word-spacing: 0.4em; }
 
         /* ---------- PAGE INDICATORS ---------- */
+        /* Bottom-right column, above the floating BG button */
         .wc-pageind {
           position: fixed;
-          top: 26px;
-          right: 22px;
+          bottom: 78px;
+          right: 28px;
           z-index: 90;
           display: flex;
           flex-direction: column;
@@ -1021,7 +1023,7 @@ function Landing() {
           transform: scale(1.4);
         }
         @media (max-width: 768px) {
-          .wc-pageind { top: 18px; right: 14px; gap: 7px; }
+          .wc-pageind { bottom: 72px; right: 22px; gap: 7px; }
         }
 
         /* CTA highlight on "Ready" */

@@ -70,33 +70,6 @@ export function MediaProvider({ children }) {
   const [mediaOffsets, setMediaOffsets] = useState({}); // sectionId -> 0..100 (object-position Y %)
   const [devMode, setDevMode] = useState(false);
 
-  // Shake detection (Android — and iOS only when DeviceMotion permission has
-  // been granted). Toggles devMode on a strong shake.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (typeof DeviceMotionEvent === 'undefined') return;
-    // iOS 13+ requires explicit permission. We don't request it here (would
-    // need a user gesture) — the listener simply won't fire until granted.
-    let lastShake = 0;
-    let lastX = 0, lastY = 0, lastZ = 0;
-    let primed = false;
-    const onMotion = (e) => {
-      const a = e.accelerationIncludingGravity;
-      if (!a) return;
-      const x = a.x || 0, y = a.y || 0, z = a.z || 0;
-      if (!primed) { lastX = x; lastY = y; lastZ = z; primed = true; return; }
-      const change = Math.abs(x - lastX) + Math.abs(y - lastY) + Math.abs(z - lastZ);
-      lastX = x; lastY = y; lastZ = z;
-      const now = Date.now();
-      if (change > 28 && now - lastShake > 1500) {
-        lastShake = now;
-        setDevMode((v) => !v);
-      }
-    };
-    window.addEventListener('devicemotion', onMotion);
-    return () => window.removeEventListener('devicemotion', onMotion);
-  }, []);
-
   // Desktop shortcut: 'D' key toggles dev mode (no fancy keys).
   useEffect(() => {
     if (typeof window === 'undefined') return;
