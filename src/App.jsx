@@ -508,13 +508,9 @@ const CTAInner = React.forwardRef(function CTAInner(_, ref) {
         <button className="wc-btn" onClick={() => {}}>
           Lets work together
         </button>
-        <button className="wc-link" onClick={() => {}}>
-          View Work
-        </button>
       </div>
 
       <div className="wc-footer-mark">
-        <WolfeMark size={14} ignoreScale />
         <span>Wolfe Co — Coastal VIC</span>
         <span className="wc-ochre-dot" />
         <span>© 2026</span>

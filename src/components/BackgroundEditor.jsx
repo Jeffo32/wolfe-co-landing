@@ -26,7 +26,14 @@ export default function BackgroundEditor() {
     <>
       <button
         onClick={() => setEditorOpen((o) => !o)}
-        onMouseEnter={() => setEditorOpen((o) => !o)}
+        onMouseEnter={() => {
+          // Don't fire on touch devices — iOS dispatches a synthetic
+          // mouseenter alongside touchend after a swipe, which would
+          // toggle the editor unintentionally.
+          if (typeof window === 'undefined') return;
+          if (!window.matchMedia('(hover: hover)').matches) return;
+          setEditorOpen((o) => !o);
+        }}
         style={{
           position: 'fixed',
           right: 18,
