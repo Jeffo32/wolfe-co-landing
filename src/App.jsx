@@ -730,6 +730,37 @@ function Landing() {
           transform: translateX(calc(90px * (1 - var(--p, 1))));
         }
 
+        /* divisions: hub starts 25% bigger, zooms to 1.0 at scroll finish */
+        #divisions .wc-dx-hub {
+          transform: scale(calc(1 + (1 - var(--p, 1)) * 0.25));
+          transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        /* divisions: three branches float up into place */
+        #divisions .wc-dx-col {
+          transform: translateY(calc((1 - var(--p, 1)) * 60px));
+          transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        /* divisions: edge labels push in from L / R while staying rotated.
+           translateX listed BEFORE rotate so it runs in screen-space, not
+           the rotated local frame. */
+        #divisions .wc-dx-edge {
+          transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        #divisions .wc-dx-edge.l-top {
+          transform: translateX(calc(-50px * (1 - var(--p, 1)))) rotate(-90deg);
+        }
+        #divisions .wc-dx-edge.l-bot {
+          transform: translateX(calc(-50px * (1 - var(--p, 1)))) rotate(-90deg);
+        }
+        #divisions .wc-dx-edge.r-top {
+          transform: translateX(calc(50px * (1 - var(--p, 1)))) rotate(90deg);
+        }
+        #divisions .wc-dx-edge.r-bot {
+          transform: translateX(calc(50px * (1 - var(--p, 1)))) rotate(90deg);
+        }
+
         /* capabilities corner labels nudge in from L / R driven by --p */
         #capabilities .wc-cap-label {
           transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
