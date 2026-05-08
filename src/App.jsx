@@ -583,10 +583,11 @@ function Landing() {
     let startScrollY = 0;
     let touching = false;
     let interacting = false;
+    let didSwipe = false;
     let tweenRaf = 0;
     let tweening = false;
 
-    const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+    const easeOutQuint = (t) => 1 - (1 - t) ** 5;
 
     const cancelTween = () => {
       if (tweenRaf) cancelAnimationFrame(tweenRaf);
@@ -594,7 +595,7 @@ function Landing() {
       tweening = false;
     };
 
-    const tweenTo = (targetY, duration = 480) => {
+    const tweenTo = (targetY, duration = 700) => {
       cancelTween();
       const sY = window.scrollY;
       const distance = targetY - sY;
@@ -604,11 +605,19 @@ function Landing() {
       const step = (now) => {
         if (!tweening) return;
         const t = Math.min(1, (now - t0) / duration);
-        window.scrollTo(0, sY + distance * easeOutCubic(t));
+        window.scrollTo(0, sY + distance * easeOutQuint(t));
         if (t < 1) tweenRaf = requestAnimationFrame(step);
         else { tweening = false; tweenRaf = 0; }
       };
       tweenRaf = requestAnimationFrame(step);
+    };
+
+    // After a swipe gesture, iOS dispatches a synthetic 'click' on whatever
+    // element the finger lifted over. If your finger ends over the BG button
+    // (bottom-right), the editor toggles. This swallows that click once.
+    const swallowNextClick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
     };
 
     const getSections = () =>
@@ -630,6 +639,7 @@ function Landing() {
 
     const onTouchStart = (e) => {
       cancelTween();
+      didSwipe = false;
       if (isInteractive(e.target)) {
         interacting = true;
         touching = false;
@@ -645,6 +655,7 @@ function Landing() {
       if (interacting || !touching) return;
       if (e.cancelable) e.preventDefault();
       const dy = startY - e.touches[0].clientY;
+      if (Math.abs(dy) > 8) didSwipe = true;
       window.scrollTo(0, startScrollY + dy);
     };
 
@@ -660,6 +671,17 @@ function Landing() {
       const dy = startY - endY;
       const vh = window.innerHeight;
       const threshold = vh * 0.12;
+
+      // Block the synthetic click iOS will dispatch over whatever element
+      // the finger lifted on (e.g. the floating BG button). Capture phase
+      // + once so it intercepts before the button's onClick fires.
+      if (didSwipe) {
+        window.addEventListener('click', swallowNextClick, { capture: true, once: true });
+        // Safety: in case no click fires within the next frame, remove the listener.
+        setTimeout(() => {
+          window.removeEventListener('click', swallowNextClick, { capture: true });
+        }, 350);
+      }
 
       const list = getSections();
       let idx = currentIndex();
