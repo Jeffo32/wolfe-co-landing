@@ -3,6 +3,7 @@ import { MediaProvider } from './media/MediaContext.jsx';
 import SectionMedia from './components/SectionMedia.jsx';
 import BackgroundEditor from './components/BackgroundEditor.jsx';
 import WolfeMark from './components/WolfeMark.jsx';
+import TopNav from './components/TopNav.jsx';
 import { useMedia } from './media/MediaContext.jsx';
 import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
 
@@ -378,6 +379,9 @@ const CapabilitiesInner = React.forwardRef(function CapabilitiesInner(_, ref) {
 });
 
 const OffersInner = React.forwardRef(function OffersInner(_, ref) {
+  const [openNum, setOpenNum] = useState(null);
+  const toggle = (num) => setOpenNum((cur) => (cur === num ? null : num));
+
   return (
     <div className="wc-offers-wrap">
       <div className="wc-offers-inner wc-tilt-target wc-reveal-stage" ref={ref}>
@@ -393,32 +397,48 @@ const OffersInner = React.forwardRef(function OffersInner(_, ref) {
         </div>
 
         <div className="wc-offers-grid">
-          {OFFERS.map((o) => (
-            <div className="wc-offer-card" key={o.num}>
-              <div className="wc-offer-num">
-                <span>{o.num}</span>
-                <span className="wc-ochre-dot" />
-              </div>
-              <div className="wc-offer-name">{o.name}</div>
-              <div className="wc-offer-division">{o.division}</div>
-              <div className="wc-offer-desc">{o.desc}</div>
+          {OFFERS.map((o) => {
+            const isOpen = openNum === o.num;
+            return (
+              <div
+                className={`wc-offer-card ${isOpen ? 'open' : ''}`}
+                key={o.num}
+              >
+                <div className="wc-offer-num">
+                  <span>{o.num}</span>
+                  <span className="wc-ochre-dot" />
+                </div>
+                <button
+                  type="button"
+                  className="wc-offer-name"
+                  onClick={() => toggle(o.num)}
+                  aria-expanded={isOpen}
+                >
+                  <span>{o.name}</span>
+                  <span className="wc-offer-chevron" aria-hidden>›</span>
+                </button>
+                <div className="wc-offer-division">{o.division}</div>
 
-              <div className="wc-offer-incl">
-                {o.inclusions.map((inc) => (
-                  <span className="wc-offer-incl-item" key={inc}>
-                    <span className="wc-offer-incl-tick" />
-                    <span>{inc}</span>
-                  </span>
-                ))}
-              </div>
+                <div className="wc-offer-drawer">
+                  <div className="wc-offer-desc">{o.desc}</div>
+                  <div className="wc-offer-incl">
+                    {o.inclusions.map((inc) => (
+                      <span className="wc-offer-incl-item" key={inc}>
+                        <span className="wc-offer-incl-tick" />
+                        <span>{inc}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="wc-offer-price">
-                <span className="wc-offer-price-from">From</span>
-                <span className="wc-offer-price-num">{o.from}</span>
-                <span className="wc-offer-price-gst">+ GST</span>
+                <div className="wc-offer-price">
+                  <span className="wc-offer-price-from">From</span>
+                  <span className="wc-offer-price-num">{o.from}</span>
+                  <span className="wc-offer-price-gst">+ GST</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -970,6 +990,61 @@ function Landing() {
 
         /* fix word-spacing on the credo footer ("Two Decades Of Practice") */
         .wc-credo-foot { word-spacing: 0.4em; }
+
+        /* ---------- TOP NAV ---------- */
+        .wc-topbar {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          z-index: 100;
+          height: 56px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 24px;
+          pointer-events: none; /* let nested buttons receive clicks; bg passthrough */
+        }
+        .wc-topbar > * { pointer-events: auto; }
+        .wc-topbar-cta {
+          background: #CE703F;
+          color: #171618;
+          border: none;
+          padding: 10px 20px;
+          font-family: 'Space Mono', monospace;
+          font-size: calc(11px * var(--text-scale, 1));
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: background 0.18s ease, transform 0.18s ease;
+          white-space: nowrap;
+        }
+        .wc-topbar-cta:hover { background: #de8050; }
+        .wc-topbar-cta:active { transform: translate(1px, 1px); }
+        .wc-topbar-nav {
+          display: flex;
+          gap: 8px;
+        }
+        .wc-topbar-link {
+          background: rgba(23, 22, 24, 0.4);
+          border: 1px solid rgba(207, 191, 170, 0.16);
+          color: #CFBFAA;
+          padding: 8px 14px;
+          font-family: 'Space Mono', monospace;
+          font-size: calc(10px * var(--text-scale, 1));
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          cursor: pointer;
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          transition: border-color 0.18s ease, color 0.18s ease;
+          white-space: nowrap;
+        }
+        .wc-topbar-link:hover { border-color: rgba(206, 112, 63, 0.6); color: #fff; }
+        @media (max-width: 768px) {
+          .wc-topbar { padding: 0 10px; height: 48px; gap: 6px; }
+          .wc-topbar-cta { padding: 7px 10px; font-size: calc(8px * var(--text-scale, 1)); letter-spacing: 0.18em; }
+          .wc-topbar-nav { gap: 4px; }
+          .wc-topbar-link { padding: 6px 7px; font-size: calc(7px * var(--text-scale, 1)); letter-spacing: 0.14em; }
+        }
 
         /* CTA highlight on "Ready" */
         .wc-cta-emphasis { color: #CE703F; }
@@ -1525,6 +1600,32 @@ function Landing() {
           font-size: calc(32px * var(--text-scale, 1));
           color: #CFBFAA;
           line-height: 1;
+          background: none;
+          border: none;
+          padding: 0;
+          text-align: left;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .wc-offer-chevron {
+          font-family: 'Inter Tight', sans-serif;
+          font-weight: 700;
+          font-size: 0.7em;
+          color: #CE703F;
+          opacity: 0;
+          transform: rotate(0);
+          transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 180ms ease;
+        }
+        .wc-offer-card.open .wc-offer-chevron {
+          transform: rotate(90deg);
+        }
+        /* Drawer wrapper — desktop: always visible flex column */
+        .wc-offer-drawer {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
         .wc-offer-division {
           font-family: 'Space Mono', monospace;
@@ -2145,8 +2246,8 @@ function Landing() {
           .wc-div-card { min-height: auto; padding: 28px 20px; }
           .wc-div-head-title, .wc-offers-head-title { font-size: calc(26px * var(--text-scale, 1)); }
 
-          /* offers: stripped-down cards — num • / name / from-price.
-             desc, division, inclusions all hidden so all three fit. */
+          /* offers: compact cards — drawer with desc + inclusions slides
+             open when the title is tapped. */
           .wc-offers-wrap { padding: 28px 14px 14px; }
           .wc-offers-inner { gap: 16px; }
           .wc-offers-head-title { font-size: calc(22px * var(--text-scale, 1)); }
@@ -2161,7 +2262,8 @@ function Landing() {
             grid-template-areas:
               "num     num"
               "name    price"
-              "name    gst";
+              "name    gst"
+              "drawer  drawer";
             align-items: center;
           }
           .wc-offer-num { grid-area: num; margin: 0; font-size: calc(8px * var(--text-scale, 1)); }
@@ -2170,10 +2272,45 @@ function Landing() {
             font-size: calc(18px * var(--text-scale, 1));
             letter-spacing: 0.04em;
           }
-          .wc-offer-division,
-          .wc-offer-desc,
+          .wc-offer-chevron { opacity: 0.7; }
+          .wc-offer-division { display: none; }
+
+          /* Drawer collapsed by default on mobile, expands on .open */
+          .wc-offer-drawer {
+            grid-area: drawer;
+            display: block;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition:
+              max-height 380ms cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 280ms ease,
+              padding-top 380ms ease,
+              margin-top 380ms ease;
+            padding-top: 0;
+            margin-top: 0;
+          }
+          .wc-offer-card.open .wc-offer-drawer {
+            max-height: 320px;
+            opacity: 1;
+            padding-top: 10px;
+            margin-top: 6px;
+            border-top: 1px solid rgba(207,191,170,0.08);
+          }
+          .wc-offer-desc {
+            font-size: calc(10px * var(--text-scale, 1));
+            line-height: 1.55;
+            opacity: 0.78;
+          }
           .wc-offer-incl {
-            display: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+          }
+          .wc-offer-incl-item {
+            font-size: calc(9px * var(--text-scale, 1));
+            letter-spacing: 0.18em;
           }
           .wc-offer-price {
             grid-area: price / price / gst / gst;
@@ -2222,6 +2359,7 @@ function Landing() {
       `}</style>
 
       <div className="wc-wrap" style={{ '--text-scale': textScale, '--hero-tag-y': `${tagY}px` }}>
+        <TopNav />
         {/* DECK — mandatory snap on every section, including hero */}
         <div className="wc-deck">
           {/* 1. HERO */}

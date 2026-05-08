@@ -24,38 +24,7 @@ export default function BackgroundEditor() {
 
   return (
     <>
-      <button
-        onClick={() => setEditorOpen((o) => !o)}
-        onMouseEnter={() => {
-          // Don't fire on touch devices — iOS dispatches a synthetic
-          // mouseenter alongside touchend after a swipe, which would
-          // toggle the editor unintentionally.
-          if (typeof window === 'undefined') return;
-          if (!window.matchMedia('(hover: hover)').matches) return;
-          setEditorOpen((o) => !o);
-        }}
-        style={{
-          position: 'fixed',
-          right: 18,
-          bottom: 18,
-          zIndex: 10000,
-          width: 44, height: 44,
-          borderRadius: 999,
-          background: editorOpen ? '#CE703F' : '#222125',
-          border: '1px solid rgba(207,191,170,0.2)',
-          color: '#CFBFAA',
-          fontFamily: "'Space Mono', monospace",
-          fontSize: 9,
-          letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-        }}
-        aria-label="Toggle background editor"
-        title="Toggle background editor (B)"
-      >
-        BG
-      </button>
+      {/* Floating BG button removed in v2 — editor still accessible via B key. */}
 
       <aside
         style={{
