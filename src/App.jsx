@@ -1212,28 +1212,6 @@ function Landing() {
           to   { transform: translateX(-50%); }
         }
 
-        /* Ochre gradient anchored to top edge, fading down. Subtle pulse +
-           slight downward drift gives the hero a "glow from above" frame. */
-        .wc-swipe-hint {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 0;
-          height: 38%;
-          pointer-events: none;
-          z-index: 3;
-          background: linear-gradient(
-            to bottom,
-            rgba(206, 112, 63, 0.32) 0%,
-            rgba(206, 112, 63, 0.12) 38%,
-            rgba(206, 112, 63, 0)    100%
-          );
-          animation: wcGlowReachDown 2.8s ease-in-out infinite;
-        }
-        @keyframes wcGlowReachDown {
-          0%, 100% { opacity: 0.55; transform: translateY(-14px); }
-          50%      { opacity: 1;    transform: translateY(6px); }
-        }
 
         /* ---------- POWER ORB (logo overlay) ---------- */
         .wc-orb {
@@ -2379,8 +2357,6 @@ function Landing() {
           {/* 1. HERO */}
           <Section id="hero">
             <SectionMedia id="hero" overlay={0.4} />
-            <div className="wc-swipe-hint" aria-hidden />
-
             <span className="wc-hero-tag">
               <span className="wc-marquee">
                 <span className="wc-marquee-sizer" aria-hidden>
