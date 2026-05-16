@@ -585,14 +585,14 @@ const StatementInner = React.forwardRef(function StatementInner(_, ref) {
       </div>
 
       <h1 className="wc-statement-line">
-        <span className="wc-statement-block">
-          <span className="wc-statement-num">20</span>
-          <span className="wc-statement-anchor">&lsquo;Good&rsquo;</span>
-        </span>
+        <span className="wc-statement-num">20</span>
         <span className="wc-statement-words">
-          Years Of Knowing What{' '}
-          <CyclingWord words={['Looks', 'Sounds', 'Feels']} />
-          {' '}Like<span className="wc-period">.</span>
+          <span className="wc-statement-row">Years Of Knowing</span>
+          <span className="wc-statement-row">
+            What &lsquo;Good&rsquo;{' '}
+            <CyclingWord words={['Looks', 'Sounds', 'Feels']} />
+            {' '}Like<span className="wc-period">.</span>
+          </span>
         </span>
       </h1>
     </div>
@@ -1315,32 +1315,24 @@ function Landing() {
           gap: 48px;
           line-height: 1;
         }
-        .wc-statement-block {
-          display: flex;
-          flex-direction: row;
-          align-items: baseline;
-          flex-shrink: 0;
-          gap: 18px;
-          line-height: 0.85;
-        }
         .wc-statement-num {
           color: #CE703F;
           font-feature-settings: 'tnum';
           font-size: calc(168px * var(--text-scale, 1));
           letter-spacing: -0.02em;
           line-height: 0.85;
-        }
-        .wc-statement-anchor {
-          font-size: calc(64px * var(--text-scale, 1));
-          letter-spacing: 0.04em;
-          color: #CFBFAA;
+          flex-shrink: 0;
         }
         .wc-statement-words {
-          font-size: calc(44px * var(--text-scale, 1));
-          line-height: 1.05;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          font-size: calc(48px * var(--text-scale, 1));
+          line-height: 1;
           text-align: left;
-          max-width: 540px;
+          max-width: 620px;
         }
+        .wc-statement-row { display: block; }
         .wc-credo {
           display: flex;
           flex-direction: column;
@@ -2207,13 +2199,12 @@ function Landing() {
             padding: 0 10px;
             align-items: center;
           }
-          .wc-statement-block { gap: 10px; }
-          .wc-statement-num { font-size: calc(96px * var(--text-scale, 1)); }
-          .wc-statement-anchor { font-size: calc(36px * var(--text-scale, 1)); }
+          .wc-statement-num { font-size: calc(100px * var(--text-scale, 1)); }
           .wc-statement-words {
             font-size: calc(22px * var(--text-scale, 1));
             text-align: center;
             max-width: 100%;
+            gap: 6px;
           }
           .wc-credo-line { font-size: calc(12px * var(--text-scale, 1)); letter-spacing: 0.08em; }
           .wc-cta-title { font-size: calc(28px * var(--text-scale, 1)); padding: 0 8px; min-height: 4em; }
