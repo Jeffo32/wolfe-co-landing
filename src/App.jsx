@@ -585,9 +585,15 @@ const StatementInner = React.forwardRef(function StatementInner(_, ref) {
       </div>
 
       <h1 className="wc-statement-line">
-        <span className="wc-statement-num">20</span> Years Of Knowing What &lsquo;Good&rsquo;{' '}
-        <CyclingWord words={['Looks', 'Sounds', 'Feels']} />
-        {' '}Like<span className="wc-period">.</span>
+        <span className="wc-statement-block">
+          <span className="wc-statement-num">20</span>
+          <span className="wc-statement-anchor">&lsquo;Good&rsquo;</span>
+        </span>
+        <span className="wc-statement-words">
+          Years Of Knowing What{' '}
+          <CyclingWord words={['Looks', 'Sounds', 'Feels']} />
+          {' '}Like<span className="wc-period">.</span>
+        </span>
       </h1>
     </div>
   );
@@ -1298,16 +1304,42 @@ function Landing() {
         .wc-statement-line {
           font-family: 'Inter Tight', sans-serif;
           font-weight: 800;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.06em;
           text-transform: uppercase;
-          font-size: calc(64px * var(--text-scale, 1));
-          line-height: 1;
           color: #CFBFAA;
           max-width: 1100px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 48px;
+          line-height: 1;
+        }
+        .wc-statement-block {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          flex-shrink: 0;
+          line-height: 0.85;
         }
         .wc-statement-num {
           color: #CE703F;
           font-feature-settings: 'tnum';
+          font-size: calc(168px * var(--text-scale, 1));
+          letter-spacing: -0.02em;
+          line-height: 0.85;
+        }
+        .wc-statement-anchor {
+          font-size: calc(36px * var(--text-scale, 1));
+          letter-spacing: 0.04em;
+          color: #CFBFAA;
+          margin-top: 2px;
+        }
+        .wc-statement-words {
+          font-size: calc(44px * var(--text-scale, 1));
+          line-height: 1.05;
+          text-align: left;
+          max-width: 540px;
         }
         .wc-credo {
           display: flex;
@@ -2169,7 +2201,19 @@ function Landing() {
 
         /* ---------- MOBILE ---------- */
         @media (max-width: 768px) {
-          .wc-statement-line { font-size: calc(28px * var(--text-scale, 1)); line-height: 1.05; padding: 0 6px; }
+          .wc-statement-line {
+            flex-direction: column;
+            gap: 18px;
+            padding: 0 10px;
+            align-items: center;
+          }
+          .wc-statement-num { font-size: calc(120px * var(--text-scale, 1)); }
+          .wc-statement-anchor { font-size: calc(24px * var(--text-scale, 1)); }
+          .wc-statement-words {
+            font-size: calc(22px * var(--text-scale, 1));
+            text-align: center;
+            max-width: 100%;
+          }
           .wc-credo-line { font-size: calc(12px * var(--text-scale, 1)); letter-spacing: 0.08em; }
           .wc-cta-title { font-size: calc(28px * var(--text-scale, 1)); padding: 0 8px; min-height: 4em; }
           .wc-avail-title { font-size: calc(32px * var(--text-scale, 1)); }
