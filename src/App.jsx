@@ -1174,31 +1174,58 @@ function Landing() {
           transform: translateY(var(--hero-tag-y, 0px));
         }
 
-        .wc-scroll-cue {
+        /* Hero tagline marquee — current width as viewport, two copies of the
+           text loop endlessly. */
+        .wc-marquee {
+          position: relative;
+          display: inline-block;
+          overflow: hidden;
+          vertical-align: bottom;
+          line-height: inherit;
+        }
+        .wc-marquee-sizer {
+          display: block;
+          visibility: hidden;
+          white-space: nowrap;
+        }
+        .wc-marquee-track {
           position: absolute;
-          bottom: 36px;
-          left: 50%;
-          transform: translateX(-50%);
+          top: 0;
+          left: 0;
           display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
+          will-change: transform;
+          animation: wcMarquee 10s linear infinite;
+        }
+        .wc-marquee-item {
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        @keyframes wcMarquee {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+
+        /* Swipe-up gradient hint — ochre wash from bottom edge reaching up,
+           subtle pulse + slight upward drift. */
+        .wc-swipe-hint {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 38%;
+          pointer-events: none;
           z-index: 3;
-        }
-        .wc-scroll-line {
-          width: 1px;
-          height: 64px;
           background: linear-gradient(
-            to bottom,
-            rgba(207,191,170,0) 0%,
-            rgba(207,191,170,0.5) 50%,
-            rgba(207,191,170,0) 100%
+            to top,
+            rgba(206, 112, 63, 0.32) 0%,
+            rgba(206, 112, 63, 0.12) 36%,
+            rgba(206, 112, 63, 0)    100%
           );
-          animation: wcCueBreathe 4s ease-in-out infinite;
+          animation: wcSwipeReachUp 2.8s ease-in-out infinite;
         }
-        @keyframes wcCueBreathe {
-          0%, 100% { opacity: 0.25; transform: translateY(-6px); }
-          50%      { opacity: 1;    transform: translateY(6px); }
+        @keyframes wcSwipeReachUp {
+          0%, 100% { opacity: 0.55; transform: translateY(14px); }
+          50%      { opacity: 1;    transform: translateY(-6px); }
         }
 
         /* ---------- POWER ORB (logo overlay) ---------- */
@@ -2350,15 +2377,23 @@ function Landing() {
                 <WolfeMark size={88} />
               </div>
               <span className="wc-hero-tag">
-                <span className="wc-ochre-dot" />
-                Digital Content Creation
-                <span className="wc-ochre-dot" />
+                <span className="wc-marquee">
+                  <span className="wc-marquee-sizer" aria-hidden>
+                    Digital Content Creation&nbsp;•&nbsp;
+                  </span>
+                  <span className="wc-marquee-track">
+                    <span className="wc-marquee-item">
+                      Digital Content Creation&nbsp;•&nbsp;
+                    </span>
+                    <span className="wc-marquee-item" aria-hidden>
+                      Digital Content Creation&nbsp;•&nbsp;
+                    </span>
+                  </span>
+                </span>
               </span>
             </div>
 
-            <div className="wc-scroll-cue">
-              <span className="wc-scroll-line" />
-            </div>
+            <div className="wc-swipe-hint" aria-hidden />
           </Section>
           {/* 2. STATEMENT */}
           <Section id="statement">
