@@ -1161,17 +1161,24 @@ function Landing() {
           text-transform: uppercase;
         }
         .wc-hero-tag {
+          position: absolute;
+          top: 56px;
+          left: 50%;
           font-family: 'Space Mono', monospace;
           font-size: calc(10px * var(--text-scale, 1));
           letter-spacing: 0.4em;
           color: #CFBFAA;
-          opacity: 0.65;
+          opacity: 0.78;
           text-transform: uppercase;
-          margin-top: 12px;
           display: inline-flex;
           align-items: center;
           gap: 12px;
-          transform: translateY(var(--hero-tag-y, 0px));
+          transform: translate(-50%, var(--hero-tag-y, 0px));
+          z-index: 4;
+          white-space: nowrap;
+        }
+        @media (max-width: 768px) {
+          .wc-hero-tag { top: 40px; }
         }
 
         /* Hero tagline marquee — current width as viewport, two copies of the
@@ -1205,27 +1212,27 @@ function Landing() {
           to   { transform: translateX(-50%); }
         }
 
-        /* Swipe-up gradient hint — ochre wash from bottom edge reaching up,
-           subtle pulse + slight upward drift. */
+        /* Ochre gradient anchored to top edge, fading down. Subtle pulse +
+           slight downward drift gives the hero a "glow from above" frame. */
         .wc-swipe-hint {
           position: absolute;
           left: 0;
           right: 0;
-          bottom: 0;
+          top: 0;
           height: 38%;
           pointer-events: none;
           z-index: 3;
           background: linear-gradient(
-            to top,
+            to bottom,
             rgba(206, 112, 63, 0.32) 0%,
-            rgba(206, 112, 63, 0.12) 36%,
+            rgba(206, 112, 63, 0.12) 38%,
             rgba(206, 112, 63, 0)    100%
           );
-          animation: wcSwipeReachUp 2.8s ease-in-out infinite;
+          animation: wcGlowReachDown 2.8s ease-in-out infinite;
         }
-        @keyframes wcSwipeReachUp {
-          0%, 100% { opacity: 0.55; transform: translateY(14px); }
-          50%      { opacity: 1;    transform: translateY(-6px); }
+        @keyframes wcGlowReachDown {
+          0%, 100% { opacity: 0.55; transform: translateY(-14px); }
+          50%      { opacity: 1;    transform: translateY(6px); }
         }
 
         /* ---------- POWER ORB (logo overlay) ---------- */
@@ -2372,28 +2379,29 @@ function Landing() {
           {/* 1. HERO */}
           <Section id="hero">
             <SectionMedia id="hero" overlay={0.4} />
+            <div className="wc-swipe-hint" aria-hidden />
+
+            <span className="wc-hero-tag">
+              <span className="wc-marquee">
+                <span className="wc-marquee-sizer" aria-hidden>
+                  Digital Content Creation&nbsp;•&nbsp;
+                </span>
+                <span className="wc-marquee-track">
+                  <span className="wc-marquee-item">
+                    Digital Content Creation&nbsp;•&nbsp;
+                  </span>
+                  <span className="wc-marquee-item" aria-hidden>
+                    Digital Content Creation&nbsp;•&nbsp;
+                  </span>
+                </span>
+              </span>
+            </span>
+
             <div className="wc-hero-inner">
               <div className="wc-hero-mark" ref={heroMarkRef}>
                 <WolfeMark size={88} />
               </div>
-              <span className="wc-hero-tag">
-                <span className="wc-marquee">
-                  <span className="wc-marquee-sizer" aria-hidden>
-                    Digital Content Creation&nbsp;•&nbsp;
-                  </span>
-                  <span className="wc-marquee-track">
-                    <span className="wc-marquee-item">
-                      Digital Content Creation&nbsp;•&nbsp;
-                    </span>
-                    <span className="wc-marquee-item" aria-hidden>
-                      Digital Content Creation&nbsp;•&nbsp;
-                    </span>
-                  </span>
-                </span>
-              </span>
             </div>
-
-            <div className="wc-swipe-hint" aria-hidden />
           </Section>
           {/* 2. STATEMENT */}
           <Section id="statement">
