@@ -101,29 +101,39 @@ const DivisionsHub = () => (
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden
   >
+    {/* Inner three rings — static */}
     <g fill="none" stroke="#CFBFAA">
       <circle r="58"  strokeOpacity="0.14" />
       <circle r="86"  strokeOpacity="0.18" />
       <circle r="118" strokeOpacity="0.16" />
-      <circle r="146" strokeOpacity="0.10" />
     </g>
-    {/* cardinal sparkles */}
-    <g stroke="#CFBFAA" strokeOpacity="0.55" strokeLinecap="round" strokeWidth="1">
-      <line x1="0" y1="-156" x2="0" y2="-138" />
-      <line x1="-9" y1="-147" x2="9" y2="-147" />
-      <line x1="0" y1="138" x2="0" y2="156" />
-      <line x1="-9" y1="147" x2="9" y2="147" />
-      <line x1="-156" y1="0" x2="-138" y2="0" />
-      <line x1="-147" y1="-9" x2="-147" y2="9" />
-      <line x1="138" y1="0" x2="156" y2="0" />
-      <line x1="147" y1="-9" x2="147" y2="9" />
-    </g>
-    {/* small crosses at quadrants */}
-    <g stroke="#CFBFAA" strokeOpacity="0.4" strokeLinecap="round">
-      <g transform="translate(104 -104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
-      <g transform="translate(-104 -104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
-      <g transform="translate(104 104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
-      <g transform="translate(-104 104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
+    {/* Outer ring + cardinal sparkles + quadrant crosses — all rotate together CCW */}
+    <g>
+      <circle r="146" fill="none" stroke="#CFBFAA" strokeOpacity="0.10" />
+      <g stroke="#CFBFAA" strokeOpacity="0.55" strokeLinecap="round" strokeWidth="1">
+        <line x1="0" y1="-156" x2="0" y2="-138" />
+        <line x1="-9" y1="-147" x2="9" y2="-147" />
+        <line x1="0" y1="138" x2="0" y2="156" />
+        <line x1="-9" y1="147" x2="9" y2="147" />
+        <line x1="-156" y1="0" x2="-138" y2="0" />
+        <line x1="-147" y1="-9" x2="-147" y2="9" />
+        <line x1="138" y1="0" x2="156" y2="0" />
+        <line x1="147" y1="-9" x2="147" y2="9" />
+      </g>
+      <g stroke="#CFBFAA" strokeOpacity="0.4" strokeLinecap="round">
+        <g transform="translate(104 -104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
+        <g transform="translate(-104 -104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
+        <g transform="translate(104 104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
+        <g transform="translate(-104 104)"><line x1="-4" y1="0" x2="4" y2="0" /><line x1="0" y1="-4" x2="0" y2="4" /></g>
+      </g>
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0 0 0"
+        to="-360 0 0"
+        dur="36s"
+        repeatCount="indefinite"
+      />
     </g>
   </svg>
 );
