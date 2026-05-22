@@ -381,7 +381,7 @@ const CapabilitiesInner = React.forwardRef(function CapabilitiesInner(_, ref) {
       <div className="wc-cap-center">
         <span className="wc-cap-num">03 — Capabilities</span>
         <span className="wc-cap-rule" />
-        <span className="wc-cap-title">Built To Travel</span>
+        <span className="wc-cap-title">Make Cool Shit</span>
       </div>
     </div>
   );
