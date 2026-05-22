@@ -1109,11 +1109,14 @@ function Landing() {
           background: rgba(23, 22, 24, 0.55);
           color: #CFBFAA;
           text-decoration: none;
+          border: none;
           font-family: 'Space Mono', monospace;
           font-size: 11px;
           letter-spacing: 0.3em;
           text-transform: uppercase;
           text-align: center;
+          cursor: pointer;
+          touch-action: manipulation;
           transition: background 0.18s ease, color 0.18s ease;
         }
         .wc-contact-sub:hover {

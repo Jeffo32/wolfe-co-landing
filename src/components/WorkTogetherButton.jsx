@@ -77,8 +77,16 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
               </button>
               {phoneOpen && (
                 <div className="wc-contact-subrow">
-                  <a href={`sms:${PHONE_DIGITS}`} className="wc-contact-sub">Text</a>
-                  <a href={`tel:${PHONE_DIGITS}`} className="wc-contact-sub">Call</a>
+                  <button
+                    type="button"
+                    className="wc-contact-sub"
+                    onClick={() => { window.location.href = `sms:${PHONE_DIGITS}`; }}
+                  >Text</button>
+                  <button
+                    type="button"
+                    className="wc-contact-sub"
+                    onClick={() => { window.location.href = `tel:${PHONE_DIGITS}`; }}
+                  >Call</button>
                 </div>
               )}
 
@@ -96,13 +104,14 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
                 <div className="wc-email-options">
                   <div className="wc-email-options-header">Enquire About</div>
                   {EMAIL_TOPICS.map((opt) => (
-                    <a
+                    <button
                       key={opt.label}
-                      href={mailtoFor(opt)}
+                      type="button"
                       className="wc-contact-sub"
+                      onClick={() => { window.location.href = mailtoFor(opt); }}
                     >
                       {opt.label}
-                    </a>
+                    </button>
                   ))}
                 </div>
               )}
