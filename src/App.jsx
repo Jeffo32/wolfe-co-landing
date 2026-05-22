@@ -615,7 +615,7 @@ const StatementInner = React.forwardRef(function StatementInner(_, ref) {
 });
 
 function Landing() {
-  const { textScale, tagY, sectionBlur } = useMedia();
+  const { textScale, tagY } = useMedia();
   const heroMarkRef = useRef(null);
   const statementRef = useRef(null);
   const divisionsRef = useRef(null);
@@ -917,14 +917,6 @@ function Landing() {
           transition: transform 90ms cubic-bezier(0.22, 0.61, 0.36, 1);
         }
         .wc-hero-mark > * { will-change: transform; }
-        /* Global section-blur slider — only applies when wc-blur-on is set
-           on the wrap, so default sites pay zero compositing cost. */
-        .wc-blur-on .wc-tilt-target {
-          filter: blur(calc((1 - var(--p, 1)) * var(--section-blur, 0) * 1px));
-          transition:
-            transform 90ms cubic-bezier(0.22, 0.61, 0.36, 1),
-            filter 180ms ease-out;
-        }
         /* full-bleed wrapper used as a single tilt/reveal target inside a section.
            Mirrors .wc-section's flex centering so absolute children (corner labels,
            proof eyebrow) keep their absolute placement while the centred element
@@ -2363,14 +2355,7 @@ function Landing() {
         }
       `}</style>
 
-      <div
-        className={`wc-wrap ${sectionBlur > 0 ? 'wc-blur-on' : ''}`}
-        style={{
-          '--text-scale': textScale,
-          '--hero-tag-y': `${tagY}px`,
-          '--section-blur': sectionBlur,
-        }}
-      >
+      <div className="wc-wrap" style={{ '--text-scale': textScale, '--hero-tag-y': `${tagY}px` }}>
         {/* DECK — mandatory snap on every section, including hero */}
         <div className="wc-deck">
           {/* 1. HERO */}

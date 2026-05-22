@@ -12,9 +12,11 @@ export default function SectionMedia({
   background = '#171618',
   fallback,         // optional element to render when no media
 }) {
-  const { media, mediaOffsets } = useMedia();
+  const { media, mediaOffsets, mediaBlurs } = useMedia();
   const entry = media[id];
   const offsetY = mediaOffsets[id] ?? 50; // 0 = top, 50 = center, 100 = bottom
+  const blur = mediaBlurs[id] ?? 0;
+  const composedFilter = blur > 0 ? `${filter} blur(${blur}px)` : filter;
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function SectionMedia({
             objectFit: 'cover',
             objectPosition: `center ${offsetY}%`,
             opacity: videoOpacity,
-            filter,
+            filter: composedFilter,
             zIndex: 0,
           }}
         />
@@ -58,7 +60,7 @@ export default function SectionMedia({
             backgroundSize: 'cover',
             backgroundPosition: `center ${offsetY}%`,
             opacity: imageOpacity,
-            filter,
+            filter: composedFilter,
             zIndex: 0,
           }}
         />

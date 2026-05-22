@@ -8,8 +8,8 @@ export default function BackgroundEditor() {
     logoScale, setLogoScale,
     textScale, setTextScale,
     tagY, setTagY,
-    sectionBlur, setSectionBlur,
     mediaOffsets, setMediaOffset,
+    mediaBlurs, setMediaBlur,
     devMode, setDevMode,
   } = useMedia();
 
@@ -181,7 +181,6 @@ export default function BackgroundEditor() {
           <LayoutBlock
             textScale={textScale} setTextScale={setTextScale}
             tagY={tagY} setTagY={setTagY}
-            sectionBlur={sectionBlur} setSectionBlur={setSectionBlur}
           />
 
           <div style={{
@@ -202,6 +201,8 @@ export default function BackgroundEditor() {
               onClear={() => clearSection(s.id)}
               offsetY={mediaOffsets[s.id] ?? 50}
               setOffsetY={(v) => setMediaOffset(s.id, v)}
+              blur={mediaBlurs[s.id] ?? 0}
+              setBlur={(v) => setMediaBlur(s.id, v)}
             />
           ))}
 
@@ -230,7 +231,7 @@ export default function BackgroundEditor() {
   );
 }
 
-function SectionRow({ section, index, entry, onFile, onClear, offsetY, setOffsetY }) {
+function SectionRow({ section, index, entry, onFile, onClear, offsetY, setOffsetY, blur, setBlur }) {
   const [drag, setDrag] = useState(false);
   const num = String(index).padStart(2, '0');
 
@@ -324,13 +325,27 @@ function SectionRow({ section, index, entry, onFile, onClear, offsetY, setOffset
             isDefault={offsetY === 50}
             marginTop={10}
           />
+          <Slider
+            label="Blur"
+            value={blur}
+            min={0}
+            max={20}
+            step={0.5}
+            onChange={setBlur}
+            valueFormatter={(v) => `${v.toFixed(1)}px`}
+            leftLabel="0"
+            rightLabel="20px"
+            onReset={() => setBlur(0)}
+            isDefault={blur === 0}
+            marginTop={10}
+          />
         </>
       )}
     </div>
   );
 }
 
-function LayoutBlock({ textScale, setTextScale, tagY, setTagY, sectionBlur, setSectionBlur }) {
+function LayoutBlock({ textScale, setTextScale, tagY, setTagY }) {
   return (
     <div style={{
       padding: '14px 4px 4px',
@@ -382,20 +397,6 @@ function LayoutBlock({ textScale, setTextScale, tagY, setTagY, sectionBlur, setS
         marginTop={14}
       />
 
-      <Slider
-        label="Section Blur"
-        value={sectionBlur}
-        min={0}
-        max={20}
-        step={0.5}
-        onChange={setSectionBlur}
-        valueFormatter={(v) => `${v.toFixed(1)}px`}
-        leftLabel="0"
-        rightLabel="20px"
-        onReset={() => setSectionBlur(0)}
-        isDefault={sectionBlur === 0}
-        marginTop={14}
-      />
     </div>
   );
 }
