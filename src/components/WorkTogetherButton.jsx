@@ -48,14 +48,16 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
             </button>
 
             <div className="wc-contact-panel">
-              {/* Phone — tap to reveal Text + Call */}
+              {/* Phone — label flips to the number when expanded, Text + Call slide in below */}
               <button
                 type="button"
                 className="wc-contact-row"
                 onClick={() => setPhoneOpen((p) => !p)}
                 aria-expanded={phoneOpen}
               >
-                <span>{PHONE_DISPLAY}</span>
+                <span className="wc-contact-row-label">
+                  {phoneOpen ? PHONE_DISPLAY : 'Phone'}
+                </span>
                 <span className={`wc-contact-arrow ${phoneOpen ? 'open' : ''}`} aria-hidden>›</span>
               </button>
               {phoneOpen && (
@@ -68,9 +70,9 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
               {/* Email — direct mailto */}
               <a
                 href={`mailto:${EMAIL}`}
-                className="wc-contact-row wc-contact-link"
+                className="wc-contact-row"
               >
-                {EMAIL}
+                Email
               </a>
             </div>
           </div>

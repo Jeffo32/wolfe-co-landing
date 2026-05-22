@@ -1083,11 +1083,8 @@ function Landing() {
           text-align: center;
         }
         .wc-contact-row:first-child { border-top: none; }
-        .wc-contact-row.wc-contact-link {
-          font-size: 10px;
-          letter-spacing: 0.14em;
-          text-transform: none;
-          opacity: 0.9;
+        .wc-contact-row-label {
+          transition: letter-spacing 200ms ease;
         }
         .wc-contact-arrow {
           display: inline-block;
