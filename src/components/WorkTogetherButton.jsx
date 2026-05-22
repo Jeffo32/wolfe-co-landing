@@ -19,11 +19,32 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
   const [open, setOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
+  const [copyFlash, setCopyFlash] = useState(null);
 
   const close = () => {
     setOpen(false);
     setPhoneOpen(false);
     setEmailOpen(false);
+    setCopyFlash(null);
+  };
+
+  // Always copy the address to clipboard + fire mailto. Desktop browsers with
+  // no mailto handler silently do nothing — the clipboard fallback ensures
+  // the user can still paste the email into whichever client they use.
+  const handleEnquiry = (opt) => {
+    const subject = `Enquire about: ${opt.label}`;
+    const mailtoUrl = `mailto:${opt.to}?subject=${encodeURIComponent(subject)}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(opt.to).catch(() => {});
+      }
+    } catch (_) { /* ignore */ }
+    // Don't await — fire mailto immediately
+    window.location.href = mailtoUrl;
+    setCopyFlash(opt.label);
+    setTimeout(() => {
+      setCopyFlash((cur) => (cur === opt.label ? null : cur));
+    }, 1800);
   };
 
   // ESC to close
@@ -107,10 +128,11 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
                     <button
                       key={opt.label}
                       type="button"
-                      className="wc-contact-sub"
-                      onClick={() => { window.location.href = mailtoFor(opt); }}
+                      className={`wc-contact-sub ${copyFlash === opt.label ? 'is-copied' : ''}`}
+                      onClick={() => handleEnquiry(opt)}
+                      title={opt.to}
                     >
-                      {opt.label}
+                      {copyFlash === opt.label ? 'Copied' : opt.label}
                     </button>
                   ))}
                 </div>

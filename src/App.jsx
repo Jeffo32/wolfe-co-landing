@@ -1123,6 +1123,10 @@ function Landing() {
           background: rgba(206, 112, 63, 0.18);
           color: #fff;
         }
+        .wc-contact-sub.is-copied {
+          background: rgba(206, 112, 63, 0.32);
+          color: #fff;
+        }
         .wc-email-options {
           display: grid;
           grid-template-columns: 1fr 1fr;
