@@ -711,7 +711,10 @@ function Landing() {
     };
 
     const isInteractive = (el) =>
-      !!el && !!el.closest('aside, button, input, label, textarea, select, [contenteditable="true"]');
+      !!el && !!el.closest(
+        'a, button, input, label, textarea, select, aside, ' +
+        '.wc-contact-backdrop, [contenteditable="true"]'
+      );
 
     const onTouchStart = (e) => {
       cancelTween();
