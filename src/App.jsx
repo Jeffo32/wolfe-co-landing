@@ -302,7 +302,7 @@ function useScrollTilt(ref, { maxTilt = 22, maxLift = -14, throw_ = 0.6 } = {}) 
 
 const DivisionsInner = React.forwardRef(function DivisionsInner(_, ref) {
   return (
-    <div className="wc-dx wc-tilt-target wc-reveal-stage wc-blur" ref={ref}>
+    <div className="wc-dx wc-tilt-target wc-reveal-stage" ref={ref}>
       <div className="wc-dx-frame" aria-hidden>
         <span className="wc-dx-cross tl">+</span>
         <span className="wc-dx-cross tr">+</span>
@@ -379,7 +379,7 @@ const CapabilitiesInner = React.forwardRef(function CapabilitiesInner(_, ref) {
       </div>
 
       <div className="wc-cap-center">
-        <span className="wc-cap-num">03 — Capabilities</span>
+        <span className="wc-cap-num">03 — Mission Statement</span>
         <span className="wc-cap-rule" />
         <span className="wc-cap-title">Make Cool Shit</span>
       </div>
@@ -530,7 +530,11 @@ const ProofInner = React.forwardRef(function ProofInner(_, ref) {
 
   return (
     <div className="wc-stage wc-tilt-target wc-reveal-stage" ref={setRef}>
-      <span className="wc-proof-eyebrow">06 — Proof</span>
+     <div className="wc-proof-stack">
+      <div className="wc-cap-center">
+        <span className="wc-cap-num">06 — Proof</span>
+        <span className="wc-cap-rule" />
+      </div>
 
       <div className="wc-proof-inner">
         <div className="wc-metric">
@@ -549,6 +553,7 @@ const ProofInner = React.forwardRef(function ProofInner(_, ref) {
           <span className="wc-metric-label">Retention</span>
         </div>
       </div>
+     </div>
     </div>
   );
 });
@@ -610,7 +615,7 @@ const StatementInner = React.forwardRef(function StatementInner(_, ref) {
 });
 
 function Landing() {
-  const { textScale, tagY } = useMedia();
+  const { textScale, tagY, sectionBlur } = useMedia();
   const heroMarkRef = useRef(null);
   const statementRef = useRef(null);
   const divisionsRef = useRef(null);
@@ -912,8 +917,10 @@ function Landing() {
           transition: transform 90ms cubic-bezier(0.22, 0.61, 0.36, 1);
         }
         .wc-hero-mark > * { will-change: transform; }
-        .wc-tilt-target.wc-blur {
-          filter: blur(calc((1 - var(--p, 1)) * 10px));
+        /* Global section-blur slider — only applies when wc-blur-on is set
+           on the wrap, so default sites pay zero compositing cost. */
+        .wc-blur-on .wc-tilt-target {
+          filter: blur(calc((1 - var(--p, 1)) * var(--section-blur, 0) * 1px));
           transition:
             transform 90ms cubic-bezier(0.22, 0.61, 0.36, 1),
             filter 180ms ease-out;
@@ -1858,18 +1865,13 @@ function Landing() {
           opacity: 0.7;
           text-transform: uppercase;
         }
-        .wc-proof-eyebrow {
-          position: absolute;
-          top: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          font-family: 'Space Mono', monospace;
-          font-size: calc(10px * var(--text-scale, 1));
-          letter-spacing: 0.4em;
-          color: #CFBFAA;
-          opacity: 0.5;
-          text-transform: uppercase;
-          z-index: 3;
+        .wc-proof-stack {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 36px;
+          position: relative;
+          z-index: 2;
         }
 
         /* ---------- CTA ---------- */
@@ -2361,7 +2363,14 @@ function Landing() {
         }
       `}</style>
 
-      <div className="wc-wrap" style={{ '--text-scale': textScale, '--hero-tag-y': `${tagY}px` }}>
+      <div
+        className={`wc-wrap ${sectionBlur > 0 ? 'wc-blur-on' : ''}`}
+        style={{
+          '--text-scale': textScale,
+          '--hero-tag-y': `${tagY}px`,
+          '--section-blur': sectionBlur,
+        }}
+      >
         {/* DECK — mandatory snap on every section, including hero */}
         <div className="wc-deck">
           {/* 1. HERO */}

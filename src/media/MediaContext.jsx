@@ -67,6 +67,7 @@ export function MediaProvider({ children }) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
   const [textScale, setTextScale] = useState(isMobile ? 1.0 : 1.4);
   const [tagY, setTagY] = useState(isMobile ? 0 : 124);
+  const [sectionBlur, setSectionBlur] = useState(0);
   const [mediaOffsets, setMediaOffsets] = useState({}); // sectionId -> 0..100 (object-position Y %)
   const [devMode, setDevMode] = useState(false);
 
@@ -145,11 +146,12 @@ export function MediaProvider({ children }) {
     logoScale, setLogoScale,
     textScale, setTextScale,
     tagY, setTagY,
+    sectionBlur, setSectionBlur,
     mediaOffsets, setMediaOffset,
     devMode, setDevMode,
   }), [media, setSection, setFromFile, clearSection, editorOpen,
        logo, logoLibrary, addLogoToLibrary, pickLogo, clearLogo, removeLogoFromLibrary,
-       logoScale, textScale, tagY, mediaOffsets, setMediaOffset, devMode]);
+       logoScale, textScale, tagY, sectionBlur, mediaOffsets, setMediaOffset, devMode]);
 
   return <MediaContext.Provider value={value}>{children}</MediaContext.Provider>;
 }
