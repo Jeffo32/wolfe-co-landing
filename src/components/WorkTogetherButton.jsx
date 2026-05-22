@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const PHONE_DISPLAY = '0400 000 000';
@@ -20,12 +20,22 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
   const [phoneOpen, setPhoneOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
   const [revealedEmail, setRevealedEmail] = useState(null);
+  const [toast, setToast] = useState(false);
+  const toastTimer = useRef(0);
 
   const close = () => {
     setOpen(false);
     setPhoneOpen(false);
     setEmailOpen(false);
     setRevealedEmail(null);
+    setToast(false);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+  };
+
+  const flashToast = () => {
+    setToast(true);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(false), 1800);
   };
 
   // Mobile: fire mailto (native Mail app opens).
@@ -41,6 +51,8 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
         navigator.clipboard.writeText(opt.to).catch(() => {});
       }
     } catch (_) { /* ignore */ }
+
+    flashToast();
 
     if (isCoarse) {
       const subject = `Enquire about: ${opt.label}`;
@@ -141,6 +153,12 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
                 </div>
               )}
             </div>
+
+            {toast && (
+              <div className="wc-contact-toast" role="status">
+                Email address copied
+              </div>
+            )}
           </div>
         </div>,
         document.body

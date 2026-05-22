@@ -1130,6 +1130,23 @@ function Landing() {
           letter-spacing: 0.04em;
           font-size: 11px;
         }
+        .wc-contact-toast {
+          margin-top: 12px;
+          padding: 10px 16px;
+          background: rgba(206, 112, 63, 0.18);
+          border: 1px solid rgba(206, 112, 63, 0.4);
+          color: #CFBFAA;
+          font-family: 'Space Mono', monospace;
+          font-size: 10px;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+          text-align: center;
+          animation: wcToastIn 200ms ease;
+        }
+        @keyframes wcToastIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
         .wc-email-options {
           display: grid;
           grid-template-columns: 1fr 1fr;
