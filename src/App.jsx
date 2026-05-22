@@ -1013,20 +1013,56 @@ function Landing() {
           to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ---------- WORK TOGETHER BUTTON + CONTACT PANEL ---------- */
-        .wc-contact-cta {
+        /* ---------- WORK TOGETHER MODAL ---------- */
+        .wc-contact-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 10001;
+          background: rgba(8, 8, 8, 0.5);
+          backdrop-filter: blur(10px) saturate(120%);
+          -webkit-backdrop-filter: blur(10px) saturate(120%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: wcBackdropIn 240ms ease;
+        }
+        @keyframes wcBackdropIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        .wc-contact-modal {
           display: flex;
           flex-direction: column;
           width: max-content;
-          max-width: 100%;
+          max-width: 92vw;
+          animation: wcModalIn 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
         }
+        @keyframes wcModalIn {
+          from { opacity: 0; transform: scale(0.96) translateY(8px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .wc-contact-modal-cta {
+          background: #CE703F;
+          color: #171618;
+          border: none;
+          padding: 18px 36px;
+          font-family: 'Space Mono', monospace;
+          font-size: 14px;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.18s ease;
+        }
+        .wc-contact-modal-cta:hover { background: #de8050; }
+
         .wc-contact-panel {
           display: flex;
           flex-direction: column;
           background: rgba(206, 112, 63, 0.06);
           border: 1px solid rgba(206, 112, 63, 0.28);
           border-top: none;
-          animation: wcNavContactIn 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
         }
         .wc-contact-row {
           background: none;
