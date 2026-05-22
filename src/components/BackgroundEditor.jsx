@@ -462,13 +462,14 @@ function Preview({ entry }) {
 }
 
 function NavBlock() {
-  // Click handlers wired up later — placeholders.
+  const [contactOpen, setContactOpen] = useState(false);
   const noop = () => {};
+
   return (
     <div>
       <button
         type="button"
-        onClick={noop}
+        onClick={() => setContactOpen((o) => !o)}
         style={{
           width: '100%',
           background: '#CE703F',
@@ -480,11 +481,55 @@ function NavBlock() {
           letterSpacing: '0.3em',
           textTransform: 'uppercase',
           cursor: 'pointer',
-          marginBottom: 14,
+          marginBottom: contactOpen ? 0 : 14,
+          transition: 'background 0.18s ease',
         }}
       >
-        Let's Work Together
+        {contactOpen ? "Let's Make Some Cool Shit" : "Let's Work Together"}
       </button>
+
+      {contactOpen && (
+        <div style={{
+          padding: '14px 14px 12px',
+          background: 'rgba(206,112,63,0.06)',
+          border: '1px solid rgba(206,112,63,0.22)',
+          borderTop: 'none',
+          textAlign: 'center',
+          marginBottom: 14,
+          animation: 'wcNavContactIn 220ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+        }}>
+          <a
+            href="tel:0400000000"
+            style={{
+              display: 'block',
+              color: '#CFBFAA',
+              textDecoration: 'none',
+              fontFamily: "'Space Mono', monospace",
+              fontSize: 13,
+              letterSpacing: '0.22em',
+              padding: '4px 0',
+            }}
+          >
+            0400 000 000
+          </a>
+          <a
+            href="mailto:jeffo.productions@gmail.com"
+            style={{
+              display: 'block',
+              color: '#CFBFAA',
+              textDecoration: 'none',
+              fontFamily: "'Space Mono', monospace",
+              fontSize: 10,
+              letterSpacing: '0.12em',
+              padding: '4px 0',
+              opacity: 0.85,
+            }}
+          >
+            jeffo.productions@gmail.com
+          </a>
+        </div>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {[
           { label: 'View Content' },

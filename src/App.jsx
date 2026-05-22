@@ -1009,6 +1009,11 @@ function Landing() {
 /* CTA highlight on "Ready" */
         .wc-cta-emphasis { color: #CE703F; }
 
+        @keyframes wcNavContactIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
         /* Cycling word — slot-style slide-up with a soft blur on entry/exit */
         .wc-cycle {
           display: inline-grid;
