@@ -3,6 +3,7 @@ import { MediaProvider } from './media/MediaContext.jsx';
 import SectionMedia from './components/SectionMedia.jsx';
 import BackgroundEditor from './components/BackgroundEditor.jsx';
 import WolfeMark from './components/WolfeMark.jsx';
+import WorkTogetherButton from './components/WorkTogetherButton.jsx';
 import { useMedia } from './media/MediaContext.jsx';
 import { makeSplitter, makeWordSplitter } from './components/SplitText.jsx';
 
@@ -576,9 +577,7 @@ const CTAInner = React.forwardRef(function CTAInner(_, ref) {
           ]} />
           <span className="wc-period">?</span>
         </h2>
-        <button className="wc-btn" onClick={() => {}}>
-          Lets work together
-        </button>
+        <WorkTogetherButton buttonClassName="wc-btn" />
       </div>
 
       <div className="wc-footer-mark">
@@ -1012,6 +1011,78 @@ function Landing() {
         @keyframes wcNavContactIn {
           from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---------- WORK TOGETHER BUTTON + CONTACT PANEL ---------- */
+        .wc-contact-cta {
+          display: flex;
+          flex-direction: column;
+          width: max-content;
+          max-width: 100%;
+        }
+        .wc-contact-panel {
+          display: flex;
+          flex-direction: column;
+          background: rgba(206, 112, 63, 0.06);
+          border: 1px solid rgba(206, 112, 63, 0.28);
+          border-top: none;
+          animation: wcNavContactIn 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .wc-contact-row {
+          background: none;
+          border: none;
+          border-top: 1px solid rgba(207, 191, 170, 0.08);
+          color: #CFBFAA;
+          font-family: 'Space Mono', monospace;
+          font-size: 13px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          padding: 14px 16px;
+          cursor: pointer;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          text-align: center;
+        }
+        .wc-contact-row:first-child { border-top: none; }
+        .wc-contact-row.wc-contact-link {
+          font-size: 10px;
+          letter-spacing: 0.14em;
+          text-transform: none;
+          opacity: 0.9;
+        }
+        .wc-contact-arrow {
+          display: inline-block;
+          font-size: 15px;
+          color: #CE703F;
+          transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+          line-height: 1;
+        }
+        .wc-contact-arrow.open { transform: rotate(90deg); }
+        .wc-contact-subrow {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1px;
+          background: rgba(207, 191, 170, 0.1);
+          animation: wcNavContactIn 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .wc-contact-sub {
+          padding: 12px 14px;
+          background: rgba(23, 22, 24, 0.55);
+          color: #CFBFAA;
+          text-decoration: none;
+          font-family: 'Space Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+          text-align: center;
+          transition: background 0.18s ease, color 0.18s ease;
+        }
+        .wc-contact-sub:hover {
+          background: rgba(206, 112, 63, 0.18);
+          color: #fff;
         }
 
         /* Cycling word — slot-style slide-up with a soft blur on entry/exit */
