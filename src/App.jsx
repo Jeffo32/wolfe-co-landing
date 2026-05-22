@@ -1117,6 +1117,25 @@ function Landing() {
           background: rgba(206, 112, 63, 0.18);
           color: #fff;
         }
+        .wc-email-options {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1px;
+          background: rgba(207, 191, 170, 0.1);
+          animation: wcNavContactIn 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .wc-email-options-header {
+          grid-column: 1 / -1;
+          padding: 10px 14px;
+          background: rgba(23, 22, 24, 0.6);
+          color: #CFBFAA;
+          opacity: 0.55;
+          font-family: 'Space Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.4em;
+          text-transform: uppercase;
+          text-align: center;
+        }
 
         /* Cycling word — slot-style slide-up with a soft blur on entry/exit */
         .wc-cycle {

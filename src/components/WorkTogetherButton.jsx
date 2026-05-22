@@ -3,13 +3,28 @@ import { createPortal } from 'react-dom';
 
 const PHONE_DISPLAY = '0400 000 000';
 const PHONE_DIGITS  = '0400000000';
-const EMAIL         = 'jeffo.productions@gmail.com';
+
+// Placeholder topic addresses — swap with real inboxes.
+const EMAIL_TOPICS = [
+  { label: 'Apps / Systems', to: 'apps@wolfe.co' },
+  { label: 'Content',        to: 'content@wolfe.co' },
+  { label: 'Brand',          to: 'brand@wolfe.co' },
+  { label: 'Other',          to: 'hello@wolfe.co' },
+];
+
+const mailtoFor = (opt) =>
+  `mailto:${opt.to}?subject=${encodeURIComponent(`Enquire about: ${opt.label}`)}`;
 
 export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
   const [open, setOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
 
-  const close = () => { setOpen(false); setPhoneOpen(false); };
+  const close = () => {
+    setOpen(false);
+    setPhoneOpen(false);
+    setEmailOpen(false);
+  };
 
   // ESC to close
   useEffect(() => {
@@ -67,13 +82,30 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
                 </div>
               )}
 
-              {/* Email — direct mailto */}
-              <a
-                href={`mailto:${EMAIL}`}
+              {/* Email — tap to reveal 4 enquiry topic buttons */}
+              <button
+                type="button"
                 className="wc-contact-row"
+                onClick={() => setEmailOpen((e) => !e)}
+                aria-expanded={emailOpen}
               >
-                Email
-              </a>
+                <span className="wc-contact-row-label">Email</span>
+                <span className={`wc-contact-arrow ${emailOpen ? 'open' : ''}`} aria-hidden>›</span>
+              </button>
+              {emailOpen && (
+                <div className="wc-email-options">
+                  <div className="wc-email-options-header">Enquire About</div>
+                  {EMAIL_TOPICS.map((opt) => (
+                    <a
+                      key={opt.label}
+                      href={mailtoFor(opt)}
+                      className="wc-contact-sub"
+                    >
+                      {opt.label}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>,
