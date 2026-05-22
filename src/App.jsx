@@ -1123,9 +1123,12 @@ function Landing() {
           background: rgba(206, 112, 63, 0.18);
           color: #fff;
         }
-        .wc-contact-sub.is-copied {
-          background: rgba(206, 112, 63, 0.32);
+        .wc-contact-sub.is-revealed {
+          background: rgba(206, 112, 63, 0.28);
           color: #fff;
+          text-transform: none;
+          letter-spacing: 0.04em;
+          font-size: 11px;
         }
         .wc-email-options {
           display: grid;

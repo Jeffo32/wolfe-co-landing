@@ -19,32 +19,35 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
   const [open, setOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
-  const [copyFlash, setCopyFlash] = useState(null);
+  const [revealedEmail, setRevealedEmail] = useState(null);
 
   const close = () => {
     setOpen(false);
     setPhoneOpen(false);
     setEmailOpen(false);
-    setCopyFlash(null);
+    setRevealedEmail(null);
   };
 
-  // Always copy the address to clipboard + fire mailto. Desktop browsers with
-  // no mailto handler silently do nothing — the clipboard fallback ensures
-  // the user can still paste the email into whichever client they use.
+  // Mobile: fire mailto (native Mail app opens).
+  // Desktop: copy address to clipboard + reveal it on the button (most
+  // desktop browsers don't have a mailto handler, so this is more reliable).
   const handleEnquiry = (opt) => {
-    const subject = `Enquire about: ${opt.label}`;
-    const mailtoUrl = `mailto:${opt.to}?subject=${encodeURIComponent(subject)}`;
+    const isCoarse = typeof window !== 'undefined' &&
+      window.matchMedia('(pointer: coarse)').matches;
+
+    // Always copy to clipboard
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(opt.to).catch(() => {});
       }
     } catch (_) { /* ignore */ }
-    // Don't await — fire mailto immediately
-    window.location.href = mailtoUrl;
-    setCopyFlash(opt.label);
-    setTimeout(() => {
-      setCopyFlash((cur) => (cur === opt.label ? null : cur));
-    }, 1800);
+
+    if (isCoarse) {
+      const subject = `Enquire about: ${opt.label}`;
+      window.location.href = `mailto:${opt.to}?subject=${encodeURIComponent(subject)}`;
+    } else {
+      setRevealedEmail(opt.label);
+    }
   };
 
   // ESC to close
@@ -128,11 +131,11 @@ export default function WorkTogetherButton({ buttonClassName, buttonStyle }) {
                     <button
                       key={opt.label}
                       type="button"
-                      className={`wc-contact-sub ${copyFlash === opt.label ? 'is-copied' : ''}`}
+                      className={`wc-contact-sub ${revealedEmail === opt.label ? 'is-revealed' : ''}`}
                       onClick={() => handleEnquiry(opt)}
                       title={opt.to}
                     >
-                      {copyFlash === opt.label ? 'Copied' : opt.label}
+                      {revealedEmail === opt.label ? opt.to : opt.label}
                     </button>
                   ))}
                 </div>
