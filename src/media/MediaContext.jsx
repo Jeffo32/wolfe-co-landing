@@ -1,8 +1,18 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { PRESETS } from './presets.js';
-import * as PresetStore from './presetStorage.js';
 
 export { PRESETS };
+
+// Send a Blob → base64 string (chunked so big files don't blow the stack)
+async function blobToBase64(blob) {
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  const CHUNK = 0x8000;
+  let bin = '';
+  for (let i = 0; i < buf.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, buf.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
 
 // Section ids must match the section ids used in App.jsx
 export const SECTION_LIST = [
@@ -96,76 +106,41 @@ export function MediaProvider({ children }) {
     });
   }, []);
 
-  // ----- User-saved presets (IndexedDB) -----
-  const [savedPresets, setSavedPresets] = useState([]);
-
-  // Load list on mount
-  useEffect(() => {
-    PresetStore.listPresets().then((list) => {
-      // Strip blobs from list metadata (we only need name + id for display)
-      setSavedPresets(list.map((p) => ({
-        id: p.id, name: p.name, createdAt: p.createdAt,
-        sectionIds: Object.keys(p.sections || {}),
-      })));
-    });
-  }, []);
-
-  // Save current media state as a named preset (stores actual Blobs in IDB).
+  // ----- Save current uploads as a preset (dev only) -----
+  // Posts the media to a Vite dev plugin that:
+  //   1. Writes each uploaded file to /public/<preset-id>/
+  //   2. Appends a new block to src/media/presets.js
+  // HMR then reloads presets.js so the new preset appears in the editor list.
   const saveCurrentPreset = useCallback(async (name) => {
     if (!name || !name.trim()) return null;
-    const id = `idb-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
     const sections = {};
-    Object.entries(media).forEach(([sectionId, entry]) => {
-      if (!entry) return;
+    for (const [sectionId, entry] of Object.entries(media)) {
+      if (!entry) continue;
       if (entry.file instanceof Blob) {
-        // Session upload — persist the actual blob
-        sections[sectionId] = { type: entry.type, blob: entry.file };
+        sections[sectionId] = {
+          type: entry.type,
+          mimeType: entry.file.type,
+          filename: entry.name || 'upload',
+          dataBase64: await blobToBase64(entry.file),
+        };
       } else if (entry.url && entry.source !== 'object') {
-        // URL-based (env, code preset) — persist just the URL
         sections[sectionId] = { type: entry.type, url: entry.url };
       }
+    }
+
+    const res = await fetch('/__save-preset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), sections }),
     });
-    const preset = { id, name: name.trim(), createdAt: Date.now(), sections };
-    await PresetStore.savePreset(preset);
-    setSavedPresets((prev) => [
-      ...prev,
-      { id, name: preset.name, createdAt: preset.createdAt, sectionIds: Object.keys(sections) },
-    ]);
-    setActivePresetId(id);
-    return id;
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || `Save failed (${res.status})`);
+    }
+    const result = await res.json();
+    return result.id;
   }, [media]);
-
-  // Load a saved preset from IDB — rehydrate blobs into object URLs.
-  const loadSavedPreset = useCallback(async (id) => {
-    const preset = await PresetStore.getPreset(id);
-    if (!preset) return;
-    setActivePresetId(id);
-    setMedia((prev) => {
-      Object.values(prev).forEach((entry) => {
-        if (entry?.source === 'object' && entry.url) URL.revokeObjectURL(entry.url);
-      });
-      const next = {};
-      Object.entries(preset.sections || {}).forEach(([sectionId, s]) => {
-        if (s.blob instanceof Blob) {
-          const url = URL.createObjectURL(s.blob);
-          next[sectionId] = {
-            type: s.type, url,
-            source: 'preset-saved', presetId: id,
-            file: s.blob,
-          };
-        } else if (s.url) {
-          next[sectionId] = { type: s.type, url: s.url, source: 'preset-saved', presetId: id };
-        }
-      });
-      return next;
-    });
-  }, []);
-
-  const deleteSavedPreset = useCallback(async (id) => {
-    await PresetStore.deletePreset(id);
-    setSavedPresets((prev) => prev.filter((p) => p.id !== id));
-    setActivePresetId((cur) => (cur === id ? null : cur));
-  }, []);
   const [mediaOffsets, setMediaOffsets] = useState({}); // sectionId -> 0..100 (object-position Y %)
   const [devMode, setDevMode] = useState(false);
 
@@ -248,13 +223,12 @@ export function MediaProvider({ children }) {
     mediaOffsets, setMediaOffset,
     mediaBlurs, setMediaBlur,
     activePresetId, applyPreset, presets: PRESETS,
-    savedPresets, saveCurrentPreset, loadSavedPreset, deleteSavedPreset,
+    saveCurrentPreset,
     devMode, setDevMode,
   }), [media, setSection, setFromFile, clearSection, editorOpen,
        logo, logoLibrary, addLogoToLibrary, pickLogo, clearLogo, removeLogoFromLibrary,
        logoScale, textScale, tagY, mediaOffsets, setMediaOffset, mediaBlurs, setMediaBlur,
-       activePresetId, applyPreset, savedPresets, saveCurrentPreset, loadSavedPreset,
-       deleteSavedPreset, devMode]);
+       activePresetId, applyPreset, saveCurrentPreset, devMode]);
 
   return <MediaContext.Provider value={value}>{children}</MediaContext.Provider>;
 }

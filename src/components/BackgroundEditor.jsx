@@ -12,7 +12,7 @@ export default function BackgroundEditor() {
     mediaOffsets, setMediaOffset,
     mediaBlurs, setMediaBlur,
     activePresetId, applyPreset, presets,
-    savedPresets, saveCurrentPreset, loadSavedPreset, deleteSavedPreset,
+    saveCurrentPreset,
     devMode, setDevMode,
   } = useMedia();
 
@@ -173,10 +173,7 @@ export default function BackgroundEditor() {
             presets={presets}
             activeId={activePresetId}
             onApply={applyPreset}
-            savedPresets={savedPresets}
             onSave={saveCurrentPreset}
-            onLoadSaved={loadSavedPreset}
-            onDeleteSaved={deleteSavedPreset}
             mediaCount={Object.keys(media).length}
           />
 
@@ -477,22 +474,28 @@ function Preview({ entry }) {
 
 function PresetBlock({
   presets, activeId, onApply,
-  savedPresets, onSave, onLoadSaved, onDeleteSaved,
+  onSave,
   mediaCount,
 }) {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
-  const [justSavedId, setJustSavedId] = useState(null);
+  const [statusMsg, setStatusMsg] = useState(null);
+
+  const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV;
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || saving) return;
     setSaving(true);
-    const newId = await onSave(name.trim());
-    setSaving(false);
-    setName('');
-    if (newId) {
-      setJustSavedId(newId);
-      setTimeout(() => setJustSavedId(null), 1500);
+    setStatusMsg(null);
+    try {
+      const id = await onSave(name.trim());
+      setStatusMsg({ ok: true, text: `Saved → /public/${id}/ — preset added to presets.js` });
+      setName('');
+    } catch (err) {
+      setStatusMsg({ ok: false, text: String(err?.message || err) });
+    } finally {
+      setSaving(false);
+      setTimeout(() => setStatusMsg(null), 4000);
     }
   };
 
@@ -525,7 +528,6 @@ function PresetBlock({
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {/* Code-defined presets (from src/media/presets.js) */}
         {presets.map((p) => (
           <button
             key={p.id}
@@ -536,116 +538,94 @@ function PresetBlock({
             {p.name}
           </button>
         ))}
+      </div>
 
-        {/* User-saved presets (IndexedDB) */}
-        {savedPresets.length > 0 && (
-          <div style={{
-            margin: '8px 0 4px',
-            fontSize: 8,
-            letterSpacing: '0.4em',
-            opacity: 0.35,
-            textTransform: 'uppercase',
-          }}>Saved</div>
-        )}
-        {savedPresets.map((p) => {
-          const active = p.id === activeId;
-          const flash = p.id === justSavedId;
-          return (
-            <div key={p.id} style={{ display: 'flex', gap: 4 }}>
-              <button
-                type="button"
-                onClick={() => onLoadSaved(p.id)}
-                style={{
-                  ...rowStyle(active),
-                  flex: 1,
-                  background: flash ? 'rgba(206,112,63,0.4)' : rowStyle(active).background,
-                }}
-              >
-                {p.name}
-                <span style={{
-                  opacity: 0.5,
-                  marginLeft: 8,
-                  fontSize: 8,
-                  letterSpacing: '0.2em',
-                }}>· {p.sectionIds.length}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm(`Delete preset "${p.name}"?`)) onDeleteSaved(p.id);
-                }}
-                style={{
-                  width: 32,
-                  background: 'transparent',
-                  border: '1px solid rgba(207,191,170,0.12)',
-                  color: 'rgba(207,191,170,0.6)',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  lineHeight: 1,
-                  padding: 0,
-                }}
-                aria-label={`Delete ${p.name}`}
-              >×</button>
+      {isDev ? (
+        <>
+          {/* Save current — dev only (writes files to /public/<id>/ and
+              updates presets.js) */}
+          <div style={{ display: 'flex', gap: 4, marginTop: 10, alignItems: 'stretch' }}>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Preset name…"
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
+              disabled={saving}
+              style={{
+                flex: 1,
+                background: 'rgba(207,191,170,0.05)',
+                border: '1px solid rgba(207,191,170,0.18)',
+                color: '#CFBFAA',
+                padding: '8px 10px',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 11,
+                letterSpacing: '0.04em',
+                outline: 'none',
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!name.trim() || mediaCount === 0 || saving}
+              style={{
+                background: '#CE703F',
+                color: '#171618',
+                border: 'none',
+                padding: '0 14px',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 10,
+                letterSpacing: '0.3em',
+                textTransform: 'uppercase',
+                cursor: name.trim() && mediaCount > 0 && !saving ? 'pointer' : 'not-allowed',
+                opacity: name.trim() && mediaCount > 0 && !saving ? 1 : 0.4,
+              }}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+
+          {statusMsg && (
+            <div style={{
+              marginTop: 8,
+              padding: '8px 10px',
+              fontSize: 9,
+              lineHeight: 1.5,
+              letterSpacing: '0.02em',
+              border: `1px solid ${statusMsg.ok ? 'rgba(157,195,41,0.4)' : 'rgba(255,99,71,0.5)'}`,
+              background: statusMsg.ok ? 'rgba(157,195,41,0.08)' : 'rgba(255,99,71,0.08)',
+              color: '#CFBFAA',
+            }}>
+              {statusMsg.text}
             </div>
-          );
-        })}
-      </div>
+          )}
 
-      {/* Save current */}
-      <div style={{
-        display: 'flex',
-        gap: 4,
-        marginTop: 10,
-        alignItems: 'stretch',
-      }}>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Preset name…"
-          onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
-          style={{
-            flex: 1,
-            background: 'rgba(207,191,170,0.05)',
-            border: '1px solid rgba(207,191,170,0.18)',
-            color: '#CFBFAA',
-            padding: '8px 10px',
-            fontFamily: "'Space Mono', monospace",
-            fontSize: 11,
-            letterSpacing: '0.04em',
-            outline: 'none',
-          }}
-        />
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!name.trim() || mediaCount === 0 || saving}
-          style={{
-            background: '#CE703F',
-            color: '#171618',
-            border: 'none',
-            padding: '0 14px',
-            fontFamily: "'Space Mono', monospace",
-            fontSize: 10,
-            letterSpacing: '0.3em',
-            textTransform: 'uppercase',
-            cursor: name.trim() && mediaCount > 0 && !saving ? 'pointer' : 'not-allowed',
-            opacity: name.trim() && mediaCount > 0 && !saving ? 1 : 0.4,
-          }}
-        >
-          {saving ? '…' : 'Save'}
-        </button>
-      </div>
-      <div style={{
-        marginTop: 8,
-        fontSize: 9,
-        lineHeight: 1.6,
-        letterSpacing: '0.02em',
-        opacity: 0.5,
-      }}>
-        Upload section videos / images, name the preset, hit
-        <span style={{ color: '#CE703F' }}> Save</span>. Stored locally on this device.
-      </div>
+          <div style={{
+            marginTop: 8,
+            fontSize: 9,
+            lineHeight: 1.6,
+            letterSpacing: '0.02em',
+            opacity: 0.5,
+          }}>
+            Upload section videos / images, name the preset, hit
+            <span style={{ color: '#CE703F' }}> Save</span> — files write to
+            <span style={{ color: '#CE703F' }}> /public/&lt;id&gt;/</span> and a
+            block is appended to <span style={{ color: '#CE703F' }}>presets.js</span>.
+            Commit + deploy to ship.
+          </div>
+        </>
+      ) : (
+        <div style={{
+          marginTop: 10,
+          fontSize: 9,
+          lineHeight: 1.6,
+          letterSpacing: '0.02em',
+          opacity: 0.4,
+        }}>
+          Save Preset is dev-only. Run <span style={{ color: '#CE703F' }}>npm run dev</span> locally
+          to create new presets.
+        </div>
+      )}
     </div>
   );
 }
