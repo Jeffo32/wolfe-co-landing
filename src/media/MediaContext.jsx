@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { PRESETS } from './presets.js';
+import * as PresetStore from './presetStorage.js';
 
 export { PRESETS };
 
@@ -77,9 +78,8 @@ export function MediaProvider({ children }) {
     setMediaBlurs((prev) => ({ ...prev, [id]: value }));
   }, []);
 
-  // Apply a preset — replaces all section media with the preset's mapping.
-  // Object-URL uploads in prev state get revoked first. Sections not in the
-  // preset get cleared (fall back to solid colour bg).
+  // Apply a code-defined preset — replaces all section media with the
+  // preset's mapping. Object-URL uploads in prev state get revoked first.
   const applyPreset = useCallback((id) => {
     const preset = PRESETS.find((p) => p.id === id);
     if (!preset) return;
@@ -94,6 +94,77 @@ export function MediaProvider({ children }) {
       });
       return next;
     });
+  }, []);
+
+  // ----- User-saved presets (IndexedDB) -----
+  const [savedPresets, setSavedPresets] = useState([]);
+
+  // Load list on mount
+  useEffect(() => {
+    PresetStore.listPresets().then((list) => {
+      // Strip blobs from list metadata (we only need name + id for display)
+      setSavedPresets(list.map((p) => ({
+        id: p.id, name: p.name, createdAt: p.createdAt,
+        sectionIds: Object.keys(p.sections || {}),
+      })));
+    });
+  }, []);
+
+  // Save current media state as a named preset (stores actual Blobs in IDB).
+  const saveCurrentPreset = useCallback(async (name) => {
+    if (!name || !name.trim()) return null;
+    const id = `idb-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const sections = {};
+    Object.entries(media).forEach(([sectionId, entry]) => {
+      if (!entry) return;
+      if (entry.file instanceof Blob) {
+        // Session upload — persist the actual blob
+        sections[sectionId] = { type: entry.type, blob: entry.file };
+      } else if (entry.url && entry.source !== 'object') {
+        // URL-based (env, code preset) — persist just the URL
+        sections[sectionId] = { type: entry.type, url: entry.url };
+      }
+    });
+    const preset = { id, name: name.trim(), createdAt: Date.now(), sections };
+    await PresetStore.savePreset(preset);
+    setSavedPresets((prev) => [
+      ...prev,
+      { id, name: preset.name, createdAt: preset.createdAt, sectionIds: Object.keys(sections) },
+    ]);
+    setActivePresetId(id);
+    return id;
+  }, [media]);
+
+  // Load a saved preset from IDB — rehydrate blobs into object URLs.
+  const loadSavedPreset = useCallback(async (id) => {
+    const preset = await PresetStore.getPreset(id);
+    if (!preset) return;
+    setActivePresetId(id);
+    setMedia((prev) => {
+      Object.values(prev).forEach((entry) => {
+        if (entry?.source === 'object' && entry.url) URL.revokeObjectURL(entry.url);
+      });
+      const next = {};
+      Object.entries(preset.sections || {}).forEach(([sectionId, s]) => {
+        if (s.blob instanceof Blob) {
+          const url = URL.createObjectURL(s.blob);
+          next[sectionId] = {
+            type: s.type, url,
+            source: 'preset-saved', presetId: id,
+            file: s.blob,
+          };
+        } else if (s.url) {
+          next[sectionId] = { type: s.type, url: s.url, source: 'preset-saved', presetId: id };
+        }
+      });
+      return next;
+    });
+  }, []);
+
+  const deleteSavedPreset = useCallback(async (id) => {
+    await PresetStore.deletePreset(id);
+    setSavedPresets((prev) => prev.filter((p) => p.id !== id));
+    setActivePresetId((cur) => (cur === id ? null : cur));
   }, []);
   const [mediaOffsets, setMediaOffsets] = useState({}); // sectionId -> 0..100 (object-position Y %)
   const [devMode, setDevMode] = useState(false);
@@ -161,7 +232,8 @@ export function MediaProvider({ children }) {
     const isImage = file.type.startsWith('image/');
     if (!isVideo && !isImage) return;
     const url = URL.createObjectURL(file);
-    setSection(id, { type: isVideo ? 'video' : 'image', url, source: 'object', name: file.name });
+    // Hold the original File so we can persist it later as a saved preset.
+    setSection(id, { type: isVideo ? 'video' : 'image', url, source: 'object', name: file.name, file });
   }, [setSection]);
 
   const clearSection = useCallback((id) => setSection(id, null), [setSection]);
@@ -176,11 +248,13 @@ export function MediaProvider({ children }) {
     mediaOffsets, setMediaOffset,
     mediaBlurs, setMediaBlur,
     activePresetId, applyPreset, presets: PRESETS,
+    savedPresets, saveCurrentPreset, loadSavedPreset, deleteSavedPreset,
     devMode, setDevMode,
   }), [media, setSection, setFromFile, clearSection, editorOpen,
        logo, logoLibrary, addLogoToLibrary, pickLogo, clearLogo, removeLogoFromLibrary,
        logoScale, textScale, tagY, mediaOffsets, setMediaOffset, mediaBlurs, setMediaBlur,
-       activePresetId, applyPreset, devMode]);
+       activePresetId, applyPreset, savedPresets, saveCurrentPreset, loadSavedPreset,
+       deleteSavedPreset, devMode]);
 
   return <MediaContext.Provider value={value}>{children}</MediaContext.Provider>;
 }

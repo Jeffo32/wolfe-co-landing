@@ -12,6 +12,7 @@ export default function BackgroundEditor() {
     mediaOffsets, setMediaOffset,
     mediaBlurs, setMediaBlur,
     activePresetId, applyPreset, presets,
+    savedPresets, saveCurrentPreset, loadSavedPreset, deleteSavedPreset,
     devMode, setDevMode,
   } = useMedia();
 
@@ -172,7 +173,11 @@ export default function BackgroundEditor() {
             presets={presets}
             activeId={activePresetId}
             onApply={applyPreset}
-            currentMedia={media}
+            savedPresets={savedPresets}
+            onSave={saveCurrentPreset}
+            onLoadSaved={loadSavedPreset}
+            onDeleteSaved={deleteSavedPreset}
+            mediaCount={Object.keys(media).length}
           />
 
           <LogoBlock
@@ -470,32 +475,41 @@ function Preview({ entry }) {
   return <img src={entry.url} alt="" style={style} />;
 }
 
-function PresetBlock({ presets, activeId, onApply, currentMedia }) {
-  const [copied, setCopied] = useState(false);
+function PresetBlock({
+  presets, activeId, onApply,
+  savedPresets, onSave, onLoadSaved, onDeleteSaved,
+  mediaCount,
+}) {
+  const [name, setName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [justSavedId, setJustSavedId] = useState(null);
 
-  const exportCurrent = async () => {
-    // Build a JS-source snippet from the current media state.
-    const sectionsJson = Object.entries(currentMedia)
-      .filter(([, entry]) => entry && entry.url)
-      .map(([id, entry]) => {
-        const url = entry.source === 'object'
-          ? '/* TODO replace with /public path */'
-          : entry.url;
-        return `    ${id}: { type: '${entry.type}', url: '${url}' },`;
-      })
-      .join('\n');
-    const snippet =
-      `{\n` +
-      `  id: 'my-preset',\n` +
-      `  name: 'My Preset',\n` +
-      `  sections: {\n${sectionsJson}\n  },\n` +
-      `},`;
-    try {
-      await navigator.clipboard.writeText(snippet);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch (_) { /* ignore */ }
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    const newId = await onSave(name.trim());
+    setSaving(false);
+    setName('');
+    if (newId) {
+      setJustSavedId(newId);
+      setTimeout(() => setJustSavedId(null), 1500);
+    }
   };
+
+  const rowStyle = (active) => ({
+    width: '100%',
+    background: active ? '#CE703F' : 'transparent',
+    color: active ? '#171618' : '#CFBFAA',
+    border: `1px solid ${active ? '#CE703F' : 'rgba(207,191,170,0.18)'}`,
+    padding: '9px 12px',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: 10,
+    letterSpacing: '0.28em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'background 0.15s ease, color 0.15s ease',
+  });
 
   return (
     <div style={{ padding: '0 4px 14px', borderBottom: '1px solid rgba(207,191,170,0.08)', marginBottom: 12 }}>
@@ -511,56 +525,117 @@ function PresetBlock({ presets, activeId, onApply, currentMedia }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {presets.map((p) => {
+        {/* Code-defined presets (from src/media/presets.js) */}
+        {presets.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => onApply(p.id)}
+            style={rowStyle(p.id === activeId)}
+          >
+            {p.name}
+          </button>
+        ))}
+
+        {/* User-saved presets (IndexedDB) */}
+        {savedPresets.length > 0 && (
+          <div style={{
+            margin: '8px 0 4px',
+            fontSize: 8,
+            letterSpacing: '0.4em',
+            opacity: 0.35,
+            textTransform: 'uppercase',
+          }}>Saved</div>
+        )}
+        {savedPresets.map((p) => {
           const active = p.id === activeId;
+          const flash = p.id === justSavedId;
           return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => onApply(p.id)}
-              style={{
-                width: '100%',
-                background: active ? '#CE703F' : 'transparent',
-                color: active ? '#171618' : '#CFBFAA',
-                border: `1px solid ${active ? '#CE703F' : 'rgba(207,191,170,0.18)'}`,
-                padding: '9px 12px',
-                fontFamily: "'Space Mono', monospace",
-                fontSize: 10,
-                letterSpacing: '0.28em',
-                textTransform: 'uppercase',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'background 0.15s ease, color 0.15s ease',
-              }}
-            >
-              {p.name}
-            </button>
+            <div key={p.id} style={{ display: 'flex', gap: 4 }}>
+              <button
+                type="button"
+                onClick={() => onLoadSaved(p.id)}
+                style={{
+                  ...rowStyle(active),
+                  flex: 1,
+                  background: flash ? 'rgba(206,112,63,0.4)' : rowStyle(active).background,
+                }}
+              >
+                {p.name}
+                <span style={{
+                  opacity: 0.5,
+                  marginLeft: 8,
+                  fontSize: 8,
+                  letterSpacing: '0.2em',
+                }}>· {p.sectionIds.length}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(`Delete preset "${p.name}"?`)) onDeleteSaved(p.id);
+                }}
+                style={{
+                  width: 32,
+                  background: 'transparent',
+                  border: '1px solid rgba(207,191,170,0.12)',
+                  color: 'rgba(207,191,170,0.6)',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  lineHeight: 1,
+                  padding: 0,
+                }}
+                aria-label={`Delete ${p.name}`}
+              >×</button>
+            </div>
           );
         })}
       </div>
 
-      <button
-        type="button"
-        onClick={exportCurrent}
-        style={{
-          marginTop: 10,
-          background: 'transparent',
-          border: '1px dashed rgba(206,112,63,0.4)',
-          color: '#CFBFAA',
-          padding: '8px 12px',
-          fontFamily: "'Space Mono', monospace",
-          fontSize: 9,
-          letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-          width: '100%',
-          textAlign: 'center',
-        }}
-        title="Copy a preset code block of the current section media to your clipboard. Paste into src/media/presets.js."
-      >
-        {copied ? 'Copied — paste into presets.js' : 'Export Current → Clipboard'}
-      </button>
-
+      {/* Save current */}
+      <div style={{
+        display: 'flex',
+        gap: 4,
+        marginTop: 10,
+        alignItems: 'stretch',
+      }}>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Preset name…"
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
+          style={{
+            flex: 1,
+            background: 'rgba(207,191,170,0.05)',
+            border: '1px solid rgba(207,191,170,0.18)',
+            color: '#CFBFAA',
+            padding: '8px 10px',
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            letterSpacing: '0.04em',
+            outline: 'none',
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!name.trim() || mediaCount === 0 || saving}
+          style={{
+            background: '#CE703F',
+            color: '#171618',
+            border: 'none',
+            padding: '0 14px',
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 10,
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            cursor: name.trim() && mediaCount > 0 && !saving ? 'pointer' : 'not-allowed',
+            opacity: name.trim() && mediaCount > 0 && !saving ? 1 : 0.4,
+          }}
+        >
+          {saving ? '…' : 'Save'}
+        </button>
+      </div>
       <div style={{
         marginTop: 8,
         fontSize: 9,
@@ -568,8 +643,8 @@ function PresetBlock({ presets, activeId, onApply, currentMedia }) {
         letterSpacing: '0.02em',
         opacity: 0.5,
       }}>
-        Drop files into <span style={{ color: '#CE703F' }}>/public</span>, then add a block to
-        <span style={{ color: '#CE703F' }}> src/media/presets.js</span>.
+        Upload section videos / images, name the preset, hit
+        <span style={{ color: '#CE703F' }}> Save</span>. Stored locally on this device.
       </div>
     </div>
   );
