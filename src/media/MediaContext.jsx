@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { PRESETS } from './presets.js';
+
+export { PRESETS };
 
 // Section ids must match the section ids used in App.jsx
 export const SECTION_LIST = [
@@ -68,9 +71,29 @@ export function MediaProvider({ children }) {
   const [textScale, setTextScale] = useState(isMobile ? 1.0 : 1.4);
   const [tagY, setTagY] = useState(isMobile ? 0 : 124);
   const [mediaBlurs, setMediaBlurs] = useState({}); // sectionId -> px
+  const [activePresetId, setActivePresetId] = useState(null);
 
   const setMediaBlur = useCallback((id, value) => {
     setMediaBlurs((prev) => ({ ...prev, [id]: value }));
+  }, []);
+
+  // Apply a preset — replaces all section media with the preset's mapping.
+  // Object-URL uploads in prev state get revoked first. Sections not in the
+  // preset get cleared (fall back to solid colour bg).
+  const applyPreset = useCallback((id) => {
+    const preset = PRESETS.find((p) => p.id === id);
+    if (!preset) return;
+    setActivePresetId(id);
+    setMedia((prev) => {
+      Object.values(prev).forEach((entry) => {
+        if (entry?.source === 'object' && entry.url) URL.revokeObjectURL(entry.url);
+      });
+      const next = {};
+      Object.entries(preset.sections || {}).forEach(([sectionId, m]) => {
+        next[sectionId] = { ...m, source: 'preset', presetId: id };
+      });
+      return next;
+    });
   }, []);
   const [mediaOffsets, setMediaOffsets] = useState({}); // sectionId -> 0..100 (object-position Y %)
   const [devMode, setDevMode] = useState(false);
@@ -152,10 +175,12 @@ export function MediaProvider({ children }) {
     tagY, setTagY,
     mediaOffsets, setMediaOffset,
     mediaBlurs, setMediaBlur,
+    activePresetId, applyPreset, presets: PRESETS,
     devMode, setDevMode,
   }), [media, setSection, setFromFile, clearSection, editorOpen,
        logo, logoLibrary, addLogoToLibrary, pickLogo, clearLogo, removeLogoFromLibrary,
-       logoScale, textScale, tagY, mediaOffsets, setMediaOffset, mediaBlurs, setMediaBlur, devMode]);
+       logoScale, textScale, tagY, mediaOffsets, setMediaOffset, mediaBlurs, setMediaBlur,
+       activePresetId, applyPreset, devMode]);
 
   return <MediaContext.Provider value={value}>{children}</MediaContext.Provider>;
 }

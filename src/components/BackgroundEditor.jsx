@@ -11,6 +11,7 @@ export default function BackgroundEditor() {
     tagY, setTagY,
     mediaOffsets, setMediaOffset,
     mediaBlurs, setMediaBlur,
+    activePresetId, applyPreset, presets,
     devMode, setDevMode,
   } = useMedia();
 
@@ -166,6 +167,13 @@ export default function BackgroundEditor() {
           }}>
             — Dev Tools —
           </div>
+
+          <PresetBlock
+            presets={presets}
+            activeId={activePresetId}
+            onApply={applyPreset}
+            currentMedia={media}
+          />
 
           <LogoBlock
             logo={logo}
@@ -460,6 +468,111 @@ function Preview({ entry }) {
   const style = { width: 64, height: 40, objectFit: 'cover', borderRadius: 3, background: '#000', flexShrink: 0 };
   if (entry.type === 'video') return <video src={entry.url} muted autoPlay loop playsInline style={style} />;
   return <img src={entry.url} alt="" style={style} />;
+}
+
+function PresetBlock({ presets, activeId, onApply, currentMedia }) {
+  const [copied, setCopied] = useState(false);
+
+  const exportCurrent = async () => {
+    // Build a JS-source snippet from the current media state.
+    const sectionsJson = Object.entries(currentMedia)
+      .filter(([, entry]) => entry && entry.url)
+      .map(([id, entry]) => {
+        const url = entry.source === 'object'
+          ? '/* TODO replace with /public path */'
+          : entry.url;
+        return `    ${id}: { type: '${entry.type}', url: '${url}' },`;
+      })
+      .join('\n');
+    const snippet =
+      `{\n` +
+      `  id: 'my-preset',\n` +
+      `  name: 'My Preset',\n` +
+      `  sections: {\n${sectionsJson}\n  },\n` +
+      `},`;
+    try {
+      await navigator.clipboard.writeText(snippet);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch (_) { /* ignore */ }
+  };
+
+  return (
+    <div style={{ padding: '0 4px 14px', borderBottom: '1px solid rgba(207,191,170,0.08)', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
+        <span style={{ fontSize: 9, letterSpacing: '0.4em', opacity: 0.4 }}>—</span>
+        <span style={{
+          fontFamily: "'Inter Tight', sans-serif",
+          fontWeight: 700,
+          fontSize: 13,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+        }}>Presets</span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {presets.map((p) => {
+          const active = p.id === activeId;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onApply(p.id)}
+              style={{
+                width: '100%',
+                background: active ? '#CE703F' : 'transparent',
+                color: active ? '#171618' : '#CFBFAA',
+                border: `1px solid ${active ? '#CE703F' : 'rgba(207,191,170,0.18)'}`,
+                padding: '9px 12px',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 10,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.15s ease, color 0.15s ease',
+              }}
+            >
+              {p.name}
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={exportCurrent}
+        style={{
+          marginTop: 10,
+          background: 'transparent',
+          border: '1px dashed rgba(206,112,63,0.4)',
+          color: '#CFBFAA',
+          padding: '8px 12px',
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 9,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          width: '100%',
+          textAlign: 'center',
+        }}
+        title="Copy a preset code block of the current section media to your clipboard. Paste into src/media/presets.js."
+      >
+        {copied ? 'Copied — paste into presets.js' : 'Export Current → Clipboard'}
+      </button>
+
+      <div style={{
+        marginTop: 8,
+        fontSize: 9,
+        lineHeight: 1.6,
+        letterSpacing: '0.02em',
+        opacity: 0.5,
+      }}>
+        Drop files into <span style={{ color: '#CE703F' }}>/public</span>, then add a block to
+        <span style={{ color: '#CE703F' }}> src/media/presets.js</span>.
+      </div>
+    </div>
+  );
 }
 
 function NavBlock() {
